@@ -1,0 +1,19 @@
+﻿<Window x:Class="TwitchVRNotifications.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TwitchVRNotifications"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Button x:Name="button" Content="Test" HorizontalAlignment="Left" Margin="10,73,0,0" VerticalAlignment="Top" Width="73" Height="35" Click="button_Click"/>
+        <TextBox x:Name="textBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="label" Content="Twitch username:" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label1" Content="Authentication token:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="139,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="button_Connect" Content="Connect" HorizontalAlignment="Left" Margin="139,98,0,0" VerticalAlignment="Top" Width="120" Click="button_Connect_Click"/>
+        <Button x:Name="button_Save" Content="Save" HorizontalAlignment="Left" Margin="139,73,0,0" VerticalAlignment="Top" Width="120" Click="button_Save_Click"/>
+
+    </Grid>
+</Window>

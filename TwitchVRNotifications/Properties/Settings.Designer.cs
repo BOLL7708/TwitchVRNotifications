@@ -46,5 +46,17 @@ namespace TwitchVRNotifications.Properties {
                 this["AuthToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Needle {
+            get {
+                return ((string)(this["Needle"]));
+            }
+            set {
+                this["Needle"] = value;
+            }
+        }
     }
 }

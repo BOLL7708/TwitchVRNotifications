@@ -1,23 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Valve.VR;
 using TwitchLib;
 using TwitchLib.Models.Client;
 using TwitchLib.Events.Client;
+using SteamVR_HUDCenter;
+using SteamVR_HUDCenter.Elements;
 
 namespace TwitchVRNotifications
 {
@@ -26,50 +16,33 @@ namespace TwitchVRNotifications
     /// </summary>
     public partial class MainWindow : Window
     {
-        private OpenVRHandler oh;
         Properties.Settings p = Properties.Settings.Default;
         TwitchClient client;
+        HUDCenterController VRController = new HUDCenterController();
+        long notificationCounter = 0;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            oh = new OpenVRHandler();
-            // bool success = oh.broadcastNotification("This is a test.", "User");
-            // Debug.Write("This happened: "+success.ToString());
             textBox_UserName.Text = p.UserName;
             textBox_AuthToken.Text = p.AuthToken;
+            textBox_Needle.Text = p.Needle;
 
-            var t = new Thread(worker);
-            if (!t.IsAlive) t.Start();
+            VRController.Init();
         }
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
             Debug.WriteLine("We clicked ze bytton.");
-            oh.test();
-        }
-
-        private void worker()
-        {
-            Thread.CurrentThread.IsBackground = true;
-            while (true)
-            {
-                if (oh.IsEventNotification())
-                {
-                    Debug.WriteLine("Notifcation shown.");
-                } else
-                {
-                    // Debug.WriteLine("Nothing!");
-                }
-                Thread.Sleep(100);
-            }
+            broadcastNotification("Test Notification", "This is a test.");
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
         {
             p.UserName = textBox_UserName.Text;
             p.AuthToken = textBox_AuthToken.Text;
+            p.Needle = textBox_Needle.Text;
             p.Save();
         }
 
@@ -86,10 +59,25 @@ namespace TwitchVRNotifications
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             Debug.WriteLine(e.ChatMessage.Username+": "+e.ChatMessage.Message);
-            if(e.ChatMessage.Message.Contains("!VR"))
+            String needle = p.Needle;
+            if(needle.Length == 0 || e.ChatMessage.Message.Contains(needle))
             {
-                Debug.WriteLine("VR Message received: " + e.ChatMessage.Message);
+                String title = e.ChatMessage.DisplayName+" says...";
+                String message = e.ChatMessage.Message.Replace(needle, "");
+                Debug.WriteLine("VR Message received: " + message);
+                broadcastNotification(title, message);
             }
-        } 
+        }
+
+        private void broadcastNotification(String title, String message)
+        {
+            notificationCounter++;
+            // String UUID = Guid.NewGuid().ToString();
+            Overlay overlay = new Overlay(title + " (" + notificationCounter + ")", 0);
+            DrawingImage image = new DrawingImage();
+            NotificationBitmap_t bitmap = new NotificationBitmap_t();
+            VRController.RegisterNewItem(overlay);
+            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, bitmap);
+        }
     }
 }

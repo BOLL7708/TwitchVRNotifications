@@ -70,5 +70,17 @@ namespace TwitchVRNotifications.Properties {
                 this["ClientID"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoConnectChat {
+            get {
+                return ((bool)(this["AutoConnectChat"]));
+            }
+            set {
+                this["AutoConnectChat"] = value;
+            }
+        }
     }
 }

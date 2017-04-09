@@ -25,22 +25,32 @@ namespace TwitchVRNotifications
         TwitchClient client;
         HUDCenterController VRController = new HUDCenterController();
         long notificationCounter = 0;
+        Overlay overlay;
+        // TODO: Cache user images here.
 
         public MainWindow()
         {
             InitializeComponent();
 
+            // Load settings
             textBox_UserName.Text = p.UserName;
             textBox_AuthToken.Text = p.AuthToken;
             textBox_Needle.Text = p.Needle;
             textBox_ClientID.Text = p.ClientID;
+            checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
+
+            // Init overlay
             VRController.Init();
+            overlay = new Overlay("Twitch Chat", 0);
+            VRController.RegisterNewItem(overlay);
+
+            // Connect to chat
+            if (p.AutoConnectChat) connectChat();
         }
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("We clicked ze bytton.");
-            broadcastNotification("Test Notification", "This is a test.", null);
+            broadcastNotification("This is a test.", null);
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
@@ -49,40 +59,45 @@ namespace TwitchVRNotifications
             p.AuthToken = textBox_AuthToken.Text;
             p.Needle = textBox_Needle.Text;
             p.ClientID = textBox_ClientID.Text;
+            p.AutoConnectChat = (bool) checkBox_AutoConnectChat.IsChecked;
             p.Save();
         }
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
+        {
+            bool result = connectChat();
+            Debug.WriteLine("Are we connected? : " + result.ToString());
+        }
+
+        private bool connectChat()
         {
             if (client != null && client.IsConnected) { client.Disconnect(); client = null; }
             ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
             client = new TwitchClient(credentials, p.UserName);
             client.OnMessageReceived += onMessageReceived;
             client.Connect();
-            Debug.WriteLine("Are we connected? : " + client.IsConnected.ToString());
+            return client.IsConnected;
         }
 
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             // loadImageFromWeb(e.ChatMessage.Username); // TODO: This is not working yet, skip it.
-            Debug.WriteLine(e.ChatMessage.Username+": "+e.ChatMessage.Message);
+
             String needle = p.Needle;
             if(needle.Length == 0 || e.ChatMessage.Message.Contains(needle))
             {
-                String title = e.ChatMessage.DisplayName+" says...";
-                String message = needle.Length > 0 ? e.ChatMessage.Message.Replace(needle, "") : e.ChatMessage.Message;
-                Debug.WriteLine("Message received: " + title + " - " + message);
-                broadcastNotification(title, message, null);
+                String message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Replace(needle, "") : e.ChatMessage.Message);
+                Debug.WriteLine(message);
+                broadcastNotification(message, null);
             }
         }
 
-        private void broadcastNotification(String title, String message, Bitmap bmp)
+        private void broadcastNotification(String message, Bitmap bmp)
         {
             // IntPtr ptr = Marshal.AllocHGlobal(bmp.leng);
             GCHandle handle1 = GCHandle.Alloc(bmp);
             IntPtr ptr = (IntPtr)handle1;
             notificationCounter++;
-            Overlay overlay = new Overlay(title + " (" + notificationCounter + ")", 0);
             NotificationBitmap_t bitmap = new NotificationBitmap_t();
             if(bmp != null)
             {
@@ -91,7 +106,6 @@ namespace TwitchVRNotifications
                 bitmap.m_nWidth = 50;
                 bitmap.m_pImageData = ptr;
             }
-            VRController.RegisterNewItem(overlay);
             VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, bitmap);
         }
 

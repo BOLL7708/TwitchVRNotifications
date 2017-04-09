@@ -18,6 +18,8 @@
         <Label x:Name="label2" Content="Needle:" HorizontalAlignment="Left" Margin="84,72,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label3" Content="Client-ID:" HorizontalAlignment="Left" Margin="75,103,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_ClientID" HorizontalAlignment="Left" Height="23" Margin="139,107,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248"/>
+        <Label x:Name="label4" Content="Auto-connect chat:" HorizontalAlignment="Left" Margin="23,232,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_AutoConnectChat" Content="" HorizontalAlignment="Left" Margin="139,238,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

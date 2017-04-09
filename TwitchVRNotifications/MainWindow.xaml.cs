@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Valve.VR;
 using TwitchLib;
 using TwitchLib.Models.Client;
 using TwitchLib.Events.Client;

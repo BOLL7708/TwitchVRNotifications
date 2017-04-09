@@ -6,6 +6,7 @@
 //=============================================================================
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Valve.VR;
 
@@ -2905,7 +2906,13 @@ public class CVRNotifications
 	public EVRNotificationError CreateNotification(ulong ulOverlayHandle,ulong ulUserValue,EVRNotificationType type,string pchText,EVRNotificationStyle style,ref NotificationBitmap_t pImage,ref uint pNotificationId)
 	{
 		pNotificationId = 0;
-		EVRNotificationError result = FnTable.CreateNotification(ulOverlayHandle,ulUserValue,type,pchText,style,ref pImage,ref pNotificationId);
+        EVRNotificationError result = EVRNotificationError.OK;
+        try {
+            result = FnTable.CreateNotification(ulOverlayHandle, ulUserValue, type, pchText, style, ref pImage, ref pNotificationId);
+        } catch(Exception e) {
+            Debug.WriteLine(e.Message);
+        }
+		
 		return result;
 	}
 	public EVRNotificationError RemoveNotification(uint notificationId)

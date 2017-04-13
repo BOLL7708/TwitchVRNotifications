@@ -13,6 +13,8 @@ using System.IO;
 using System.Web.Script.Serialization;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Windows.Media.Imaging;
+using TwitchVRNotifications.Properties;
 
 namespace TwitchVRNotifications
 {
@@ -24,8 +26,8 @@ namespace TwitchVRNotifications
         Properties.Settings p = Properties.Settings.Default;
         TwitchClient client;
         HUDCenterController VRController = new HUDCenterController();
-        long notificationCounter = 0;
         Overlay overlay;
+        Bitmap[] userLogos;
         // TODO: Cache user images here.
 
         public MainWindow()
@@ -50,7 +52,8 @@ namespace TwitchVRNotifications
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
-            broadcastNotification("This is a test.", null);
+            loadImageFromWeb("woboloko", "this is at test");
+            // broadcastNotification("This is a test.", new NotificationBitmap_t());
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
@@ -81,71 +84,70 @@ namespace TwitchVRNotifications
 
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
-            // loadImageFromWeb(e.ChatMessage.Username); // TODO: This is not working yet, skip it.
-
-            String needle = p.Needle;
+            string needle = p.Needle;
             if(needle.Length == 0 || e.ChatMessage.Message.Contains(needle))
             {
-                String message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Replace(needle, "") : e.ChatMessage.Message);
-                Debug.WriteLine(message);
-                broadcastNotification(message, null);
+                string message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Replace(needle, "") : e.ChatMessage.Message);
+                Debug.WriteLine(message+", "+e.ChatMessage.ColorHex);
+                // broadcastNotification(message, new NotificationBitmap_t());
+                loadImageFromWeb(e.ChatMessage.Username, message);
             }
         }
 
-        private void broadcastNotification(String message, Bitmap bmp)
-        {
-            // IntPtr ptr = Marshal.AllocHGlobal(bmp.leng);
-            GCHandle handle1 = GCHandle.Alloc(bmp);
-            IntPtr ptr = (IntPtr)handle1;
-            notificationCounter++;
-            NotificationBitmap_t bitmap = new NotificationBitmap_t();
-            if(bmp != null)
-            {
-                bitmap.m_nBytesPerPixel = 24;
-                bitmap.m_nHeight = 50;
-                bitmap.m_nWidth = 50;
-                bitmap.m_pImageData = ptr;
-            }
-            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, bitmap);
+        private void broadcastNotification(string message, NotificationBitmap_t icon)
+        {           
+            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
         }
 
-        private void loadImageFromWeb(String username)
+        private void loadImageFromWeb(string username, string message)
         {
-            WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/"+username);
-            request.Headers.Add("Client-ID: "+p.ClientID);
+            WebRequest  request = WebRequest.Create("https://api.twitch.tv/kraken/channels/"+username);
+                        request.Headers.Add("Client-ID: "+p.ClientID);
             using (var response = request.GetResponse())
             using (var stream = response.GetResponseStream())
             {
                 StreamReader reader = new StreamReader(stream);
                 string json = reader.ReadToEnd();
+                stream.Close();
 
-                JavaScriptSerializer js = new JavaScriptSerializer();
-                var obj = js.Deserialize<dynamic>(json);
-                String logoUrl = obj["logo"];
+                var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
+                String logoUrl = jsonObj["logo"];
+                if(logoUrl == null) logoUrl = "http://localhost/boll/twitch_chat/twitch.jpg";
 
                 Debug.WriteLine(logoUrl);
 
-                // IMAGE
-                var imgRequest = WebRequest.Create(logoUrl.Replace("300x300", "50x50"));
-                Debug.WriteLine(imgRequest.RequestUri);
-                using (var imgResponse = request.GetResponse())
+                // IMAGE              
+                WebRequest imgRequest = WebRequest.Create(logoUrl); // TODO: Load default image here.
+                using (var imgResponse = imgRequest.GetResponse())
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
-                    // Image img = Image.FromStream(imgStream);
-                    // Debug.WriteLine("IMG Type: " + img.GetType());
-                    // Bitmap bmp = new Bitmap(imgStream);
-                    Bitmap bmp = new Bitmap("C:\\Temp\\boll7708.jpeg"); // TODO: This seems to work, or something, but not loading from the web, what's up with that? Missing header?
-                    // broadcastNotification("ImageTest", "Testing to load an image yo...", bmp);
+                    Bitmap notification_bitmap = new Bitmap(imgStream); // new Bitmap(@"D:\Dropbox\BOLL_Vive_150px.jpg");
+
+                    // TODO: Use transparent logo and user color to make a custom Twitch logo? Maybe? Or write name in logo?
+
+                    NotificationBitmap_t notification_icon = new NotificationBitmap_t();
+
+                    System.Drawing.Imaging.BitmapData TextureData = notification_bitmap.LockBits(
+                            new Rectangle(0, 0, notification_bitmap.Width, notification_bitmap.Height),
+                            System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                            System.Drawing.Imaging.PixelFormat.Format32bppRgb
+                        );
+
+
+                    notification_icon.m_pImageData = TextureData.Scan0;
+                    notification_icon.m_nWidth = TextureData.Width;
+                    notification_icon.m_nHeight = TextureData.Height;
+                    notification_icon.m_nBytesPerPixel = 4;
+
+                    broadcastNotification(message, notification_icon);
                 }
-
-
+                
             }
-            /*
-            using (var stream = response.GetResponseStream())
-            {
-                Bitmap.FromStream(stream);
-            }
-            */
+        }
+
+        private void imageFinishedDownloading(object Sender, EventArgs e)
+        {
+            
         }
     }
 }

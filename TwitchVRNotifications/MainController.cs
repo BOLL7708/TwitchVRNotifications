@@ -21,7 +21,7 @@ namespace TwitchVRNotifications
         TwitchClient client;
         HUDCenterController VRController = new HUDCenterController();
         Overlay overlay;
-        Dictionary<string, BitmapData> userLogos = new Dictionary<string, BitmapData>();
+        Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
 
         public MainController()
         {
@@ -56,10 +56,11 @@ namespace TwitchVRNotifications
         {
             if (userLogos.ContainsKey(username))
             {
-                BitmapData bmd;
-                if (userLogos.TryGetValue(username, out bmd))
+                Bitmap bmp;
+                if (userLogos.TryGetValue(username, out bmp))
                 {
-                    NotificationBitmap_t icon = iconFromBitmapData(bmd);
+                    Debug.WriteLine("Bitmap from cached.");
+                    NotificationBitmap_t icon = iconFromBitmapData(bitmapDataFromBitmap(bmp));
                     broadcastNotification(message, icon);
                     return;
                 }
@@ -77,29 +78,34 @@ namespace TwitchVRNotifications
 
                 var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
                 String logoUrl = jsonObj["logo"];
-                if (logoUrl == null) logoUrl = p.PlaceholderLogo; // "D:\\Google Drive\\-= BOLL7708 =-\\-= WWW Root =-\\twitch_chat\\twitch.jpg"; // "http://localhost/boll/twitch_chat/twitch.jpg";
+                if (logoUrl == null) logoUrl = p.PlaceholderLogo;
 
                 Debug.WriteLine(logoUrl);
 
                 // IMAGE              
-                WebRequest imgRequest = WebRequest.Create(logoUrl); // TODO: Load default image here.
+                WebRequest imgRequest = WebRequest.Create(logoUrl);
                 using (var imgResponse = imgRequest.GetResponse())
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
-                    Bitmap notification_bitmap = new Bitmap(imgStream); // new Bitmap(@"D:\Dropbox\BOLL_Vive_150px.jpg");
-                    RGBtoBGR(notification_bitmap);
-
-                    // TODO: Use transparent logo and user color to make a custom Twitch logo? Maybe? Or write name in logo?
-                    BitmapData TextureData = notification_bitmap.LockBits(
-                            new Rectangle(0, 0, notification_bitmap.Width, notification_bitmap.Height),
-                            System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                            System.Drawing.Imaging.PixelFormat.Format32bppArgb
-                        );
-                    userLogos.Add(username, TextureData);
-                    broadcastNotification(message, iconFromBitmapData(TextureData));
+                    Bitmap notification_bitmap = new Bitmap(imgStream);
+                    RGBtoBGR(notification_bitmap); // Fix colors
+                    userLogos.Add(username, notification_bitmap); // Cache
+                    BitmapData TextureData = bitmapDataFromBitmap(notification_bitmap); // Allocate
+                    broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
                 }
 
             }
+        }
+
+        private BitmapData bitmapDataFromBitmap(Bitmap bmpIn)
+        {
+            Bitmap bmp = (Bitmap)bmpIn.Clone();
+            BitmapData texData = bmp.LockBits(
+                new Rectangle(0, 0, bmp.Width, bmp.Height),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb
+            );
+            return texData;
         }
 
         private NotificationBitmap_t iconFromBitmapData(BitmapData TextureData)

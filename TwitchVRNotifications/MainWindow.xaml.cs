@@ -26,7 +26,7 @@ namespace TwitchVRNotifications
         TwitchClient client;
         HUDCenterController VRController = new HUDCenterController();
         Overlay overlay;
-        Dictionary<string, NotificationBitmap_t> userLogos = new Dictionary<string, NotificationBitmap_t>();
+        Dictionary<string, BitmapData> userLogos = new Dictionary<string, BitmapData>();
 
         public MainWindow()
         {
@@ -103,9 +103,10 @@ namespace TwitchVRNotifications
             if(userLogos.ContainsKey(username))
             {
                 Debug.WriteLine("Bitmap was cached.");
-                NotificationBitmap_t bmp;
-                if(!userLogos.TryGetValue(username, out bmp)) bmp = new NotificationBitmap_t();
-                broadcastNotification(message, bmp);
+                BitmapData bmd;
+                if(!userLogos.TryGetValue(username, out bmd)) bmd = new BitmapData();
+                NotificationBitmap_t icon = iconFromBitmapData(bmd);
+                broadcastNotification(message, icon);
                 return;
             }
 
@@ -131,31 +132,29 @@ namespace TwitchVRNotifications
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
                     Bitmap notification_bitmap = new Bitmap(imgStream); // new Bitmap(@"D:\Dropbox\BOLL_Vive_150px.jpg");
-
                     RGBtoBGR(notification_bitmap);
 
                     // TODO: Use transparent logo and user color to make a custom Twitch logo? Maybe? Or write name in logo?
-
-                    NotificationBitmap_t notification_icon = new NotificationBitmap_t();
-
                     BitmapData TextureData = notification_bitmap.LockBits(
                             new Rectangle(0, 0, notification_bitmap.Width, notification_bitmap.Height),
                             System.Drawing.Imaging.ImageLockMode.ReadOnly,
                             System.Drawing.Imaging.PixelFormat.Format32bppArgb
                         );
-
-
-                    notification_icon.m_pImageData = TextureData.Scan0;
-                    notification_icon.m_nWidth = TextureData.Width;
-                    notification_icon.m_nHeight = TextureData.Height;
-                    notification_icon.m_nBytesPerPixel = 4;
-
-                    userLogos.Add(username, notification_icon);
-
-                    broadcastNotification(message, notification_icon);
+                    userLogos.Add(username, TextureData);
+                    broadcastNotification(message, iconFromBitmapData(TextureData));
                 }
                 
             }
+        }
+
+        private static NotificationBitmap_t iconFromBitmapData(BitmapData TextureData)
+        {
+            NotificationBitmap_t notification_icon = new NotificationBitmap_t();
+            notification_icon.m_pImageData = TextureData.Scan0;
+            notification_icon.m_nWidth = TextureData.Width;
+            notification_icon.m_nHeight = TextureData.Height;
+            notification_icon.m_nBytesPerPixel = 4;
+            return notification_icon;
         }
 
         private void button_Browse_Click(object sender, RoutedEventArgs e)

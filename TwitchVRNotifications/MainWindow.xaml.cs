@@ -1,19 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows;
-using System.Windows.Media;
-using Valve.VR;
-using TwitchLib;
-using TwitchLib.Models.Client;
-using TwitchLib.Events.Client;
-using SteamVR_HUDCenter;
-using SteamVR_HUDCenter.Elements;
-using System.Net;
-using System.IO;
-using System.Web.Script.Serialization;
-using System.Drawing;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
+
 
 namespace TwitchVRNotifications
 {
@@ -23,10 +10,8 @@ namespace TwitchVRNotifications
     public partial class MainWindow : Window
     {
         Properties.Settings p = Properties.Settings.Default;
-        TwitchClient client;
-        HUDCenterController VRController = new HUDCenterController();
-        Overlay overlay;
-        Dictionary<string, BitmapData> userLogos = new Dictionary<string, BitmapData>();
+        MainController controller = new MainController();
+        
 
         public MainWindow()
         {
@@ -40,18 +25,8 @@ namespace TwitchVRNotifications
             checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
             textBox_PlaceholderLogo.Text = p.PlaceholderLogo;
 
-            // Init overlay
-            VRController.Init();
-            overlay = new Overlay("Twitch Chat", 0);
-            VRController.RegisterNewItem(overlay);
-
             // Connect to chat
-            if (p.AutoConnectChat) connectChat();
-        }
-
-        private void button_Click(object sender, RoutedEventArgs e)
-        {
-            loadImageFromWeb("woboloko", "this is at test");
+            if (p.AutoConnectChat) controller.connectChat();
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
@@ -67,94 +42,8 @@ namespace TwitchVRNotifications
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            bool result = connectChat();
+            bool result = controller.connectChat();
             Debug.WriteLine("Are we connected? : " + result.ToString());
-        }
-
-        private bool connectChat()
-        {
-            if (client != null && client.IsConnected) { client.Disconnect(); client = null; }
-            ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
-            client = new TwitchClient(credentials, p.UserName);
-            client.OnMessageReceived += onMessageReceived;
-            client.Connect();
-            return client.IsConnected;
-        }
-
-        private void onMessageReceived(object sender, OnMessageReceivedArgs e)
-        {
-            string needle = p.Needle;
-            if(needle.Length == 0 || e.ChatMessage.Message.Contains(needle))
-            {
-                string message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Replace(needle, "") : e.ChatMessage.Message);
-                Debug.WriteLine(message+", "+e.ChatMessage.ColorHex);
-                // broadcastNotification(message, new NotificationBitmap_t());
-                loadImageFromWeb(e.ChatMessage.Username, message);
-            }
-        }
-
-        private void broadcastNotification(string message, NotificationBitmap_t icon)
-        {           
-            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
-        }
-
-        private void loadImageFromWeb(string username, string message)
-        {
-            if(userLogos.ContainsKey(username))
-            {
-                Debug.WriteLine("Bitmap was cached.");
-                BitmapData bmd;
-                if(!userLogos.TryGetValue(username, out bmd)) bmd = new BitmapData();
-                NotificationBitmap_t icon = iconFromBitmapData(bmd);
-                broadcastNotification(message, icon);
-                return;
-            }
-
-            Debug.WriteLine("Loading bitmap.");
-            WebRequest  request = WebRequest.Create("https://api.twitch.tv/kraken/channels/"+username);
-                        request.Headers.Add("Client-ID: "+p.ClientID);
-            using (var response = request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            {
-                StreamReader reader = new StreamReader(stream);
-                string json = reader.ReadToEnd();
-                stream.Close();
-
-                var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
-                String logoUrl = jsonObj["logo"];
-                if (logoUrl == null) logoUrl = p.PlaceholderLogo; // "D:\\Google Drive\\-= BOLL7708 =-\\-= WWW Root =-\\twitch_chat\\twitch.jpg"; // "http://localhost/boll/twitch_chat/twitch.jpg";
-
-                Debug.WriteLine(logoUrl);
-
-                // IMAGE              
-                WebRequest imgRequest = WebRequest.Create(logoUrl); // TODO: Load default image here.
-                using (var imgResponse = imgRequest.GetResponse())
-                using (var imgStream = imgResponse.GetResponseStream())
-                {
-                    Bitmap notification_bitmap = new Bitmap(imgStream); // new Bitmap(@"D:\Dropbox\BOLL_Vive_150px.jpg");
-                    RGBtoBGR(notification_bitmap);
-
-                    // TODO: Use transparent logo and user color to make a custom Twitch logo? Maybe? Or write name in logo?
-                    BitmapData TextureData = notification_bitmap.LockBits(
-                            new Rectangle(0, 0, notification_bitmap.Width, notification_bitmap.Height),
-                            System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                            System.Drawing.Imaging.PixelFormat.Format32bppArgb
-                        );
-                    userLogos.Add(username, TextureData);
-                    broadcastNotification(message, iconFromBitmapData(TextureData));
-                }
-                
-            }
-        }
-
-        private static NotificationBitmap_t iconFromBitmapData(BitmapData TextureData)
-        {
-            NotificationBitmap_t notification_icon = new NotificationBitmap_t();
-            notification_icon.m_pImageData = TextureData.Scan0;
-            notification_icon.m_nWidth = TextureData.Width;
-            notification_icon.m_nHeight = TextureData.Height;
-            notification_icon.m_nBytesPerPixel = 4;
-            return notification_icon;
         }
 
         private void button_Browse_Click(object sender, RoutedEventArgs e)
@@ -164,7 +53,7 @@ namespace TwitchVRNotifications
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
             dlg.DefaultExt = ".jpg";
             dlg.Filter = "JPG Files (*.jpg)|*.jpg|JPEG Files (*.jpeg)|*.jpeg";
-            Nullable<bool> result = dlg.ShowDialog();
+            bool? result = dlg.ShowDialog();
             if (result == true)
             {
                 string filename = dlg.FileName;
@@ -172,23 +61,14 @@ namespace TwitchVRNotifications
             }
         }
 
-        public static void RGBtoBGR(Bitmap bmp)
+        private void button_Test_Click(object sender, RoutedEventArgs e)
         {
-            // http://stackoverflow.com/a/19189660
+            controller.broadcastNotification("woboloko", "this is at test");
+        }
 
-            BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
-            int length = Math.Abs(data.Stride) * bmp.Height;
-            unsafe
-            {
-                byte* rgbValues = (byte*)data.Scan0.ToPointer();
-                for (int i = 0; i < length; i += 3)
-                {
-                    byte dummy = rgbValues[i];
-                    rgbValues[i] = rgbValues[i + 2];
-                    rgbValues[i + 2] = dummy;
-                }
-            }
-            bmp.UnlockBits(data);
+        private void button_InitOpenVR_Click(object sender, RoutedEventArgs e)
+        {
+            controller.initVr();
         }
     }
 }

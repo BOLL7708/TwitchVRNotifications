@@ -82,5 +82,17 @@ namespace TwitchVRNotifications.Properties {
                 this["AutoConnectChat"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PlaceholderLogo {
+            get {
+                return ((string)(this["PlaceholderLogo"]));
+            }
+            set {
+                this["PlaceholderLogo"] = value;
+            }
+        }
     }
 }

@@ -15,6 +15,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
 using TwitchVRNotifications.Properties;
+using System.Collections.Generic;
 
 namespace TwitchVRNotifications
 {
@@ -27,7 +28,7 @@ namespace TwitchVRNotifications
         TwitchClient client;
         HUDCenterController VRController = new HUDCenterController();
         Overlay overlay;
-        Bitmap[] userLogos;
+        Dictionary<string, NotificationBitmap_t> userLogos = new Dictionary<string, NotificationBitmap_t>();
         // TODO: Cache user images here.
 
         public MainWindow()
@@ -40,6 +41,7 @@ namespace TwitchVRNotifications
             textBox_Needle.Text = p.Needle;
             textBox_ClientID.Text = p.ClientID;
             checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
+            textBox_PlaceholderLogo.Text = p.PlaceholderLogo;
 
             // Init overlay
             VRController.Init();
@@ -63,6 +65,7 @@ namespace TwitchVRNotifications
             p.Needle = textBox_Needle.Text;
             p.ClientID = textBox_ClientID.Text;
             p.AutoConnectChat = (bool) checkBox_AutoConnectChat.IsChecked;
+            p.PlaceholderLogo = textBox_PlaceholderLogo.Text;
             p.Save();
         }
 
@@ -112,7 +115,7 @@ namespace TwitchVRNotifications
 
                 var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
                 String logoUrl = jsonObj["logo"];
-                if(logoUrl == null) logoUrl = "http://localhost/boll/twitch_chat/twitch.jpg";
+                if (logoUrl == null) logoUrl = p.PlaceholderLogo; // "D:\\Google Drive\\-= BOLL7708 =-\\-= WWW Root =-\\twitch_chat\\twitch.jpg"; // "http://localhost/boll/twitch_chat/twitch.jpg";
 
                 Debug.WriteLine(logoUrl);
 
@@ -145,9 +148,19 @@ namespace TwitchVRNotifications
             }
         }
 
-        private void imageFinishedDownloading(object Sender, EventArgs e)
+        private void button_Browse_Click(object sender, RoutedEventArgs e)
         {
-            
+            // http://stackoverflow.com/a/10315283
+
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.DefaultExt = ".jpg";
+            dlg.Filter = "JPG Files (*.jpg)|*.jpg|JPEG Files (*.jpeg)|*.jpeg";
+            Nullable<bool> result = dlg.ShowDialog();
+            if (result == true)
+            {
+                string filename = dlg.FileName;
+                textBox_PlaceholderLogo.Text = filename;
+            }
         }
     }
 }

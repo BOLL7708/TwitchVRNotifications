@@ -12,10 +12,8 @@ using System.Net;
 using System.IO;
 using System.Web.Script.Serialization;
 using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Windows.Media.Imaging;
-using TwitchVRNotifications.Properties;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 
 namespace TwitchVRNotifications
 {
@@ -29,7 +27,6 @@ namespace TwitchVRNotifications
         HUDCenterController VRController = new HUDCenterController();
         Overlay overlay;
         Dictionary<string, NotificationBitmap_t> userLogos = new Dictionary<string, NotificationBitmap_t>();
-        // TODO: Cache user images here.
 
         public MainWindow()
         {
@@ -55,7 +52,6 @@ namespace TwitchVRNotifications
         private void button_Click(object sender, RoutedEventArgs e)
         {
             loadImageFromWeb("woboloko", "this is at test");
-            // broadcastNotification("This is a test.", new NotificationBitmap_t());
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
@@ -104,6 +100,16 @@ namespace TwitchVRNotifications
 
         private void loadImageFromWeb(string username, string message)
         {
+            if(userLogos.ContainsKey(username))
+            {
+                Debug.WriteLine("Bitmap was cached.");
+                NotificationBitmap_t bmp;
+                if(!userLogos.TryGetValue(username, out bmp)) bmp = new NotificationBitmap_t();
+                broadcastNotification(message, bmp);
+                return;
+            }
+
+            Debug.WriteLine("Loading bitmap.");
             WebRequest  request = WebRequest.Create("https://api.twitch.tv/kraken/channels/"+username);
                         request.Headers.Add("Client-ID: "+p.ClientID);
             using (var response = request.GetResponse())
@@ -126,14 +132,16 @@ namespace TwitchVRNotifications
                 {
                     Bitmap notification_bitmap = new Bitmap(imgStream); // new Bitmap(@"D:\Dropbox\BOLL_Vive_150px.jpg");
 
+                    RGBtoBGR(notification_bitmap);
+
                     // TODO: Use transparent logo and user color to make a custom Twitch logo? Maybe? Or write name in logo?
 
                     NotificationBitmap_t notification_icon = new NotificationBitmap_t();
 
-                    System.Drawing.Imaging.BitmapData TextureData = notification_bitmap.LockBits(
+                    BitmapData TextureData = notification_bitmap.LockBits(
                             new Rectangle(0, 0, notification_bitmap.Width, notification_bitmap.Height),
                             System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                            System.Drawing.Imaging.PixelFormat.Format32bppRgb
+                            System.Drawing.Imaging.PixelFormat.Format32bppArgb
                         );
 
 
@@ -141,6 +149,8 @@ namespace TwitchVRNotifications
                     notification_icon.m_nWidth = TextureData.Width;
                     notification_icon.m_nHeight = TextureData.Height;
                     notification_icon.m_nBytesPerPixel = 4;
+
+                    userLogos.Add(username, notification_icon);
 
                     broadcastNotification(message, notification_icon);
                 }
@@ -161,6 +171,25 @@ namespace TwitchVRNotifications
                 string filename = dlg.FileName;
                 textBox_PlaceholderLogo.Text = filename;
             }
+        }
+
+        public static void RGBtoBGR(Bitmap bmp)
+        {
+            // http://stackoverflow.com/a/19189660
+
+            BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
+            int length = Math.Abs(data.Stride) * bmp.Height;
+            unsafe
+            {
+                byte* rgbValues = (byte*)data.Scan0.ToPointer();
+                for (int i = 0; i < length; i += 3)
+                {
+                    byte dummy = rgbValues[i];
+                    rgbValues[i] = rgbValues[i + 2];
+                    rgbValues[i + 2] = dummy;
+                }
+            }
+            bmp.UnlockBits(data);
         }
     }
 }

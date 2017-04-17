@@ -7,13 +7,23 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <Button x:Name="button" Content="Test" HorizontalAlignment="Left" Margin="10,73,0,0" VerticalAlignment="Top" Width="73" Height="35" Click="button_Click"/>
-        <TextBox x:Name="textBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="button_Test" Content="Test" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="73" Height="35" Click="button_Test_Click"/>
+        <TextBox x:Name="textBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text"/>
         <Label x:Name="label" Content="Twitch username:" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label1" Content="Authentication token:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="139,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="button_Connect" Content="Connect" HorizontalAlignment="Left" Margin="139,98,0,0" VerticalAlignment="Top" Width="120" Click="button_Connect_Click"/>
-        <Button x:Name="button_Save" Content="Save" HorizontalAlignment="Left" Margin="139,73,0,0" VerticalAlignment="Top" Width="120" Click="button_Save_Click"/>
+        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="139,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="text"/>
+        <Button x:Name="button_Connect" Content="Connect" HorizontalAlignment="Left" Margin="392,44,0,0" VerticalAlignment="Top" Width="60" Click="button_Connect_Click"/>
+        <Button x:Name="button_Save" Content="Save" HorizontalAlignment="Left" Margin="139,179,0,0" VerticalAlignment="Top" Width="120" Click="button_Save_Click"/>
+        <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="139,76,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="label2" Content="Needle:" HorizontalAlignment="Left" Margin="84,72,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label3" Content="Client-ID:" HorizontalAlignment="Left" Margin="75,103,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_ClientID" HorizontalAlignment="Left" Height="23" Margin="139,107,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248"/>
+        <Label x:Name="label4" Content="Auto-connect chat:" HorizontalAlignment="Left" Margin="23,232,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_AutoConnectChat" Content="" HorizontalAlignment="Left" Margin="139,238,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_PlaceholderLogo" HorizontalAlignment="Left" Height="23" Margin="139,139,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248"/>
+        <Label x:Name="label5" Content="Placeholder logo:" HorizontalAlignment="Left" Margin="32,135,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="button_Browse" Content="Browse" HorizontalAlignment="Left" Margin="392,138,0,0" VerticalAlignment="Top" Width="60" Click="button_Browse_Click"/>
+        <Button x:Name="button_InitOpenVR" Content="Button" HorizontalAlignment="Left" Margin="362,199,0,0" VerticalAlignment="Top" Width="75" Click="button_InitOpenVR_Click"/>
 
     </Grid>
 </Window>

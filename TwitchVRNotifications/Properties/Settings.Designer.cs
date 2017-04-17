@@ -46,5 +46,53 @@ namespace TwitchVRNotifications.Properties {
                 this["AuthToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Needle {
+            get {
+                return ((string)(this["Needle"]));
+            }
+            set {
+                this["Needle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ClientID {
+            get {
+                return ((string)(this["ClientID"]));
+            }
+            set {
+                this["ClientID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoConnectChat {
+            get {
+                return ((bool)(this["AutoConnectChat"]));
+            }
+            set {
+                this["AutoConnectChat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PlaceholderLogo {
+            get {
+                return ((string)(this["PlaceholderLogo"]));
+            }
+            set {
+                this["PlaceholderLogo"] = value;
+            }
+        }
     }
 }

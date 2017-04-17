@@ -1,22 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using TwitchLib;
-using TwitchLib.Models.Client;
-using TwitchLib.Events.Client;
+
 
 namespace TwitchVRNotifications
 {
@@ -25,70 +9,64 @@ namespace TwitchVRNotifications
     /// </summary>
     public partial class MainWindow : Window
     {
-        private OpenVRHandler oh;
         Properties.Settings p = Properties.Settings.Default;
-        TwitchClient client;
+        MainController controller = new MainController();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            oh = new OpenVRHandler();
-            // bool success = oh.broadcastNotification("This is a test.", "User");
-            // Debug.Write("This happened: "+success.ToString());
+            // Load settings
             textBox_UserName.Text = p.UserName;
             textBox_AuthToken.Text = p.AuthToken;
+            textBox_Needle.Text = p.Needle;
+            textBox_ClientID.Text = p.ClientID;
+            checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
+            textBox_PlaceholderLogo.Text = p.PlaceholderLogo;
 
-            var t = new Thread(worker);
-            if (!t.IsAlive) t.Start();
-        }
-
-        private void button_Click(object sender, RoutedEventArgs e)
-        {
-            Debug.WriteLine("We clicked ze bytton.");
-            oh.test();
-        }
-
-        private void worker()
-        {
-            Thread.CurrentThread.IsBackground = true;
-            while (true)
-            {
-                if (oh.IsEventNotification())
-                {
-                    Debug.WriteLine("Notifcation shown.");
-                } else
-                {
-                    // Debug.WriteLine("Nothing!");
-                }
-                Thread.Sleep(100);
-            }
+            // Connect to chat
+            if (p.AutoConnectChat) controller.connectChat();
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
         {
             p.UserName = textBox_UserName.Text;
             p.AuthToken = textBox_AuthToken.Text;
+            p.Needle = textBox_Needle.Text;
+            p.ClientID = textBox_ClientID.Text;
+            p.AutoConnectChat = (bool) checkBox_AutoConnectChat.IsChecked;
+            p.PlaceholderLogo = textBox_PlaceholderLogo.Text;
             p.Save();
         }
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            if (client != null && client.IsConnected) { client.Disconnect(); client = null; }
-            ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
-            client = new TwitchClient(credentials, p.UserName);
-            client.OnMessageReceived += onMessageReceived;
-            client.Connect();
-            Debug.WriteLine("Are we connected? : " + client.IsConnected.ToString());
+            controller.connectChat();
         }
 
-        private void onMessageReceived(object sender, OnMessageReceivedArgs e)
+        private void button_Browse_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine(e.ChatMessage.Username+": "+e.ChatMessage.Message);
-            if(e.ChatMessage.Message.Contains("!VR"))
+            // http://stackoverflow.com/a/10315283
+
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.DefaultExt = ".jpg";
+            dlg.Filter = "JPG Files (*.jpg)|*.jpg|JPEG Files (*.jpeg)|*.jpeg";
+            bool? result = dlg.ShowDialog();
+            if (result == true)
             {
-                Debug.WriteLine("VR Message received: " + e.ChatMessage.Message);
+                string filename = dlg.FileName;
+                textBox_PlaceholderLogo.Text = filename;
             }
-        } 
+        }
+
+        private void button_Test_Click(object sender, RoutedEventArgs e)
+        {
+            controller.broadcastNotification("woboloko", "this is at test");
+        }
+
+        private void button_InitOpenVR_Click(object sender, RoutedEventArgs e)
+        {
+            controller.initVr();
+        }
     }
 }

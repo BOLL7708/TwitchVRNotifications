@@ -11,6 +11,8 @@ using TwitchLib;
 using TwitchLib.Events.Client;
 using TwitchLib.Models.Client;
 using Valve.VR;
+using System.Diagnostics;
+using System.Text;
 
 namespace TwitchVRNotifications
 {
@@ -46,10 +48,10 @@ namespace TwitchVRNotifications
 
         public void broadcastNotification(string username, string message)
         {
-            broadcastNotification(username, message, Color.Purple);
+            broadcastNotification(username, message, System.Drawing.Color.Purple);
         }
 
-        public void broadcastNotification(string username, string message, Color color)
+        public void broadcastNotification(string username, string message, System.Drawing.Color color)
         {
             string b64name = Base64Encode(username);
             if (userLogos.ContainsKey(b64name))
@@ -73,7 +75,7 @@ namespace TwitchVRNotifications
                 stream.Close();
 
                 var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
-                String logoUrl = jsonObj["logo"];
+                string logoUrl = jsonObj["logo"];
                 bool userHasLogo = logoUrl != null;
                 if (!userHasLogo) logoUrl = p.PlaceholderLogo;
 
@@ -93,7 +95,7 @@ namespace TwitchVRNotifications
                     Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
                     gfx.Clear(color); // Background
                     gfx.DrawImageUnscaledAndClipped(bmp, rect);
-                    Pen pen = new Pen(color, 32f);
+                    System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
                     if (userHasLogo) gfx.DrawRectangle(pen, rect); // Outline
                     userLogos.Add(b64name, bmpEdit); // Cache
                     BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
@@ -105,16 +107,23 @@ namespace TwitchVRNotifications
 
         private void broadcastNotification(string message, NotificationBitmap_t icon)
         {
+            // http://stackoverflow.com/a/14057684
+
+            byte[] bytes = Encoding.Default.GetBytes(message);
+            message = Encoding.UTF8.GetString(bytes); // Still does not fix ÅÄÖ turning to ???
+
             VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
         }
 
         private BitmapData bitmapDataFromBitmap(Bitmap bmpIn)
         {
+            // https://github.com/artumino/SteamVR_HUDCenter/blob/a8e306ba9c6fbe0e9834cd8d49365df42b06fa2e/VRTestApplication/TestForm.cs#L59-L70
+
             Bitmap bmp = (Bitmap)bmpIn.Clone();
             BitmapData texData = bmp.LockBits(
                 new Rectangle(0, 0, bmp.Width, bmp.Height),
-                ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb
+                System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb
             );
             return texData;
         }
@@ -155,10 +164,10 @@ namespace TwitchVRNotifications
                     rgbValues[i + 2] = dummy;
                 }
             }
-            bmp.UnlockBits(data);
+            bmp.UnlockBits(data);            
         }
 
-        private void RGBtoBGR(ref Color color)
+        private void RGBtoBGR(ref System.Drawing.Color color)
         {
             int argb = color.ToArgb();
             byte[] bytes = BitConverter.GetBytes(argb);
@@ -167,7 +176,7 @@ namespace TwitchVRNotifications
             bytes[0] = b;
             bytes[2] = a;
             argb = BitConverter.ToInt32(bytes, 0);
-            color = Color.FromArgb(argb);
+            color = System.Drawing.Color.FromArgb(argb);
         }
 
         public static string Base64Encode(string plainText)

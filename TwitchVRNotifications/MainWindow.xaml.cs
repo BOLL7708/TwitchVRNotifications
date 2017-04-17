@@ -11,7 +11,6 @@ namespace TwitchVRNotifications
     {
         Properties.Settings p = Properties.Settings.Default;
         MainController controller = new MainController();
-        
 
         public MainWindow()
         {
@@ -42,8 +41,7 @@ namespace TwitchVRNotifications
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            bool result = controller.connectChat();
-            Debug.WriteLine("Are we connected? : " + result.ToString());
+            controller.connectChat();
         }
 
         private void button_Browse_Click(object sender, RoutedEventArgs e)

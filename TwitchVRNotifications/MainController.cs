@@ -2,7 +2,6 @@
 using SteamVR_HUDCenter.Elements;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -25,7 +24,6 @@ namespace TwitchVRNotifications
 
         public MainController()
         {
-            Debug.WriteLine("Initiating main controller.");
             initVr();
             overlay = new Overlay("Twitch Chat", 0);
             VRController.RegisterNewItem(overlay);
@@ -38,35 +36,33 @@ namespace TwitchVRNotifications
 
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
-            Debug.WriteLine("Message received: " + e.ChatMessage.Message);
             string needle = p.Needle;
             if (needle.Length == 0 || e.ChatMessage.Message.IndexOf(needle) == 0)
             {
                 string message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
-                broadcastNotification(e.ChatMessage.Username, message);
+                broadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
             }
-        }
-
-        private void broadcastNotification(string message, NotificationBitmap_t icon)
-        {
-            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
         }
 
         public void broadcastNotification(string username, string message)
         {
-            if (userLogos.ContainsKey(username))
+            broadcastNotification(username, message, Color.Purple);
+        }
+
+        public void broadcastNotification(string username, string message, Color color)
+        {
+            String b64name = Base64Encode(username);
+            if (userLogos.ContainsKey(b64name))
             {
                 Bitmap bmp;
-                if (userLogos.TryGetValue(username, out bmp))
+                if (userLogos.TryGetValue(b64name, out bmp))
                 {
-                    Debug.WriteLine("Bitmap from cached.");
                     NotificationBitmap_t icon = iconFromBitmapData(bitmapDataFromBitmap(bmp));
                     broadcastNotification(message, icon);
                     return;
                 }
             }
 
-            Debug.WriteLine("Loading bitmap.");
             WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
             request.Headers.Add("Client-ID: " + p.ClientID);
             using (var response = request.GetResponse())
@@ -78,23 +74,41 @@ namespace TwitchVRNotifications
 
                 var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
                 String logoUrl = jsonObj["logo"];
-                if (logoUrl == null) logoUrl = p.PlaceholderLogo;
+                bool userHasLogo = logoUrl != null;
+                if (!userHasLogo) logoUrl = p.PlaceholderLogo;
 
-                Debug.WriteLine(logoUrl);
-
-                // IMAGE              
+                // Load image
                 WebRequest imgRequest = WebRequest.Create(logoUrl);
                 using (var imgResponse = imgRequest.GetResponse())
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
-                    Bitmap notification_bitmap = new Bitmap(imgStream);
-                    RGBtoBGR(notification_bitmap); // Fix colors
-                    userLogos.Add(username, notification_bitmap); // Cache
-                    BitmapData TextureData = bitmapDataFromBitmap(notification_bitmap); // Allocate
+                    Bitmap bmp = new Bitmap(imgStream);
+                    RGBtoBGR(bmp); // Fix color
+
+                    // http://stackoverflow.com/a/27318979
+
+                    Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
+                    Graphics gfx = Graphics.FromImage(bmpEdit);
+                    RGBtoBGR(ref color); // Fix color
+                    Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
+                    gfx.Clear(color); // Background
+                    gfx.DrawImageUnscaledAndClipped(bmp, rect);
+                    if (userHasLogo) // Outline
+                    {
+                        Pen pen = new Pen(color, 32f);
+                        gfx.DrawRectangle(pen, rect);
+                    }
+                    userLogos.Add(Base64Encode(b64name), bmpEdit); // Cache
+                    BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
                     broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
                 }
 
             }
+        }
+
+        private void broadcastNotification(string message, NotificationBitmap_t icon)
+        {
+            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
         }
 
         private BitmapData bitmapDataFromBitmap(Bitmap bmpIn)
@@ -102,8 +116,8 @@ namespace TwitchVRNotifications
             Bitmap bmp = (Bitmap)bmpIn.Clone();
             BitmapData texData = bmp.LockBits(
                 new Rectangle(0, 0, bmp.Width, bmp.Height),
-                System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                System.Drawing.Imaging.PixelFormat.Format32bppArgb
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb
             );
             return texData;
         }
@@ -145,6 +159,26 @@ namespace TwitchVRNotifications
                 }
             }
             bmp.UnlockBits(data);
+        }
+
+        private void RGBtoBGR(ref Color color)
+        {
+            int argb = color.ToArgb();
+            byte[] bytes = BitConverter.GetBytes(argb);
+            byte a = bytes[0];
+            byte b = bytes[2];
+            bytes[0] = b;
+            bytes[2] = a;
+            argb = BitConverter.ToInt32(bytes, 0);
+            color = Color.FromArgb(argb);
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            // http://stackoverflow.com/a/11743162
+
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return Convert.ToBase64String(plainTextBytes);
         }
     }
 }

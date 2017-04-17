@@ -23,17 +23,27 @@ namespace TwitchVRNotifications
         HUDCenterController VRController = new HUDCenterController();
         Overlay overlay;
         Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
+        public bool OpenVR_Initiated = false;
 
         public MainController()
         {
-            initVr();
-            overlay = new Overlay("Twitch Chat", 0);
-            VRController.RegisterNewItem(overlay);
+            OpenVR_Initiated = initVr(); // Init OpenVR
+            if (p.AutoConnectChat) connectChat(); // Connect to chat
         }
 
-        public void initVr()
+        public bool initVr()
         {
-            VRController.Init(EVRApplicationType.VRApplication_Background);
+            try
+            {
+                VRController.Init(EVRApplicationType.VRApplication_Background);
+                overlay = new Overlay("Twitch Chat", 0);
+                VRController.RegisterNewItem(overlay);
+                return true;
+            } catch (Exception e)
+            {
+                return false;
+            }
+            
         }
 
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
@@ -111,8 +121,10 @@ namespace TwitchVRNotifications
 
             byte[] bytes = Encoding.Default.GetBytes(message);
             message = Encoding.UTF8.GetString(bytes); // Still does not fix ÅÄÖ turning to ???
-
-            VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
+            if(OpenVR_Initiated)
+            {
+                VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
+            }
         }
 
         private BitmapData bitmapDataFromBitmap(Bitmap bmpIn)
@@ -146,6 +158,11 @@ namespace TwitchVRNotifications
             client.OnMessageReceived += onMessageReceived;
             client.Connect();
             return client.IsConnected;
+        }
+
+        public bool isChatConnected()
+        {
+            return client != null && client.IsConnected;
         }
 
         private void RGBtoBGR(Bitmap bmp)

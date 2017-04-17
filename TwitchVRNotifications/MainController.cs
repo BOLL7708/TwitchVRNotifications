@@ -51,7 +51,7 @@ namespace TwitchVRNotifications
 
         public void broadcastNotification(string username, string message, Color color)
         {
-            String b64name = Base64Encode(username);
+            string b64name = Base64Encode(username);
             if (userLogos.ContainsKey(b64name))
             {
                 Bitmap bmp;
@@ -83,7 +83,7 @@ namespace TwitchVRNotifications
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
                     Bitmap bmp = new Bitmap(imgStream);
-                    RGBtoBGR(bmp); // Fix color
+                    if (userHasLogo) RGBtoBGR(bmp); // Fix color (messes up alpha)
 
                     // http://stackoverflow.com/a/27318979
 
@@ -93,12 +93,9 @@ namespace TwitchVRNotifications
                     Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
                     gfx.Clear(color); // Background
                     gfx.DrawImageUnscaledAndClipped(bmp, rect);
-                    if (userHasLogo) // Outline
-                    {
-                        Pen pen = new Pen(color, 32f);
-                        gfx.DrawRectangle(pen, rect);
-                    }
-                    userLogos.Add(Base64Encode(b64name), bmpEdit); // Cache
+                    Pen pen = new Pen(color, 32f);
+                    if (userHasLogo) gfx.DrawRectangle(pen, rect); // Outline
+                    userLogos.Add(b64name, bmpEdit); // Cache
                     BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
                     broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
                 }

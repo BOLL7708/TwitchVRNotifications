@@ -95,7 +95,7 @@ namespace TwitchVRNotifications
                 using (var imgStream = imgResponse.GetResponseStream())
                 {
                     Bitmap bmp = new Bitmap(imgStream);
-                    if (userHasLogo) RGBtoBGR(bmp); // Fix color (messes up alpha)
+                    RGBtoBGR(bmp); // Fix color
 
                     // http://stackoverflow.com/a/27318979
 
@@ -167,14 +167,15 @@ namespace TwitchVRNotifications
 
         private void RGBtoBGR(Bitmap bmp)
         {
-            // http://stackoverflow.com/a/19189660
+            // based on http://stackoverflow.com/a/19189660
 
+            int bytesPerPixel = Bitmap.GetPixelFormatSize(bmp.PixelFormat)/8;
             BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
             int length = Math.Abs(data.Stride) * bmp.Height;
             unsafe
             {
                 byte* rgbValues = (byte*)data.Scan0.ToPointer();
-                for (int i = 0; i < length; i += 3)
+                for (int i = 0; i < length; i += bytesPerPixel)
                 {
                     byte dummy = rgbValues[i];
                     rgbValues[i] = rgbValues[i + 2];

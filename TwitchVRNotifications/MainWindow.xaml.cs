@@ -29,27 +29,34 @@ namespace TwitchVRNotifications
         {
             // Load settings
             textBox_UserName.Text = p.UserName;
-            textBox_AuthToken.Text = p.AuthToken;
+            passwordBox_AuthToken.Password = p.AuthToken;
             textBox_Needle.Text = p.Needle;
-            textBox_ClientID.Text = p.ClientID;
+            passwordBox_ClientID.Password = p.ClientID;
             checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
             textBox_TestUsername.Text = p.TestUsername;
             textBox_TestMessage.Text = p.TestMessage;
             checkBox_AutoSave.IsChecked = p.AutoSave;
+            checkBox_FilterOn.IsChecked = p.FilterOn;
         }
 
         private void saveSettings()
         {
             // Save settings
             p.UserName = textBox_UserName.Text;
-            p.AuthToken = textBox_AuthToken.Text;
+            p.AuthToken = passwordBox_AuthToken.Password;
             p.Needle = textBox_Needle.Text;
-            p.ClientID = textBox_ClientID.Text;
+            p.ClientID = passwordBox_ClientID.Password;
             p.AutoConnectChat = (bool)checkBox_AutoConnectChat.IsChecked;
             p.TestUsername = textBox_TestUsername.Text;
             p.TestMessage = textBox_TestMessage.Text;
             p.AutoSave = (bool)checkBox_AutoSave.IsChecked;
+            p.FilterOn = (bool)checkBox_FilterOn.IsChecked;
             p.Save();
+        }
+
+        private void Window_Deactivated(object sender, System.EventArgs e)
+        {
+            if(p.AutoSave) saveSettings();
         }
 
         private void ClickedURL(object sender, RoutedEventArgs e)
@@ -87,11 +94,11 @@ namespace TwitchVRNotifications
             }
         }
 
-        private void textBox_AuthToken_LostFocus(object sender, RoutedEventArgs e)
+        private void passwordBox_AuthToken_LostFocus(object sender, RoutedEventArgs e)
         {
             if (p.AutoSave)
             {
-                p.AuthToken = textBox_AuthToken.Text;
+                p.AuthToken = passwordBox_AuthToken.Password;
                 p.Save();
             }
         }
@@ -105,11 +112,11 @@ namespace TwitchVRNotifications
             }
         }
 
-        private void textBox_ClientID_LostFocus(object sender, RoutedEventArgs e)
+        private void passwordBox_ClientID_LostFocus(object sender, RoutedEventArgs e)
         {
             if (p.AutoSave)
             {
-                p.ClientID = textBox_ClientID.Text;
+                p.ClientID = passwordBox_ClientID.Password;
                 p.Save();
             }
         }
@@ -146,6 +153,24 @@ namespace TwitchVRNotifications
             if (p.AutoSave)
             {
                 p.AutoConnectChat = false;
+                p.Save();
+            }
+        }
+
+        private void checkBox_FilterOn_Checked(object sender, RoutedEventArgs e)
+        {
+            if (p.AutoSave)
+            {
+                p.FilterOn = true;
+                p.Save();
+            }
+        }
+
+        private void checkBox_FilterOn_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (p.AutoSave)
+            {
+                p.FilterOn = false;
                 p.Save();
             }
         }

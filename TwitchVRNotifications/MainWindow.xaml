@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwitchVRNotifications"
         mc:Ignorable="d"
-        Title="MainWindow" Height="453" Width="685">
+        Title="MainWindow" Height="453" Width="685" Deactivated="Window_Deactivated">
     <Grid>
         <Button x:Name="button_Test" Content="Test notification" HorizontalAlignment="Left" Margin="314,202,0,0" VerticalAlignment="Top" Width="138" Height="23" Click="button_Test_Click"/>
-        <TextBox x:Name="textBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text" LostFocus="textBox_AuthToken_LostFocus"/>
+        <PasswordBox x:Name="passwordBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" VerticalAlignment="Top" Width="248" Password="text" LostFocus="passwordBox_AuthToken_LostFocus"/>
         <Label x:Name="label" Content="Twitch username:" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label1" Content="Chat auth token:" HorizontalAlignment="Left" Margin="37,41,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="139,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="text" LostFocus="textBox_UserName_LostFocus"/>
@@ -17,7 +17,7 @@
         <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="139,76,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="120" LostFocus="textBox_Needle_LostFocus"/>
         <Label x:Name="label2" Content="Filter messages on:" HorizontalAlignment="Left" Margin="23,72,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label3" Content="Kraken API client-ID:" HorizontalAlignment="Left" Margin="16,103,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="textBox_ClientID" HorizontalAlignment="Left" Height="23" Margin="139,107,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248" LostFocus="textBox_ClientID_LostFocus"/>
+        <PasswordBox x:Name="passwordBox_ClientID" HorizontalAlignment="Left" Password="text" Height="23" Margin="139,107,0,0" VerticalAlignment="Top" Width="248" LostFocus="passwordBox_ClientID_LostFocus"/>
         <CheckBox x:Name="checkBox_AutoConnectChat" Content="Auto-connect chat" HorizontalAlignment="Left" Margin="334,16,0,0" VerticalAlignment="Top" Checked="checkBox_AutoConnectChat_Checked" Unchecked="checkBox_AutoConnectChat_Unchecked"/>
         <Button x:Name="button_InitOpenVR" Content="Init OpenVR" HorizontalAlignment="Left" Margin="332,291,0,0" VerticalAlignment="Top" Width="120" Click="button_InitOpenVR_Click"/>
         <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="139,202,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="170" LostFocus="textBox_TestUsername_LostFocus"/>
@@ -30,9 +30,8 @@
         </TextBlock>
         <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="392,108,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
             <Hyperlink NavigateUri="https://www.twitch.tv/settings/connections" Click="ClickedURL">Get client-ID</Hyperlink>, <Hyperlink NavigateUri="https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843" Click="ClickedURL">instructions</Hyperlink>
-            
-        </TextBlock>
-        <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="264,78,0,0" VerticalAlignment="Top"/>
 
+        </TextBlock>
+        <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="264,78,0,0" VerticalAlignment="Top" Checked="checkBox_FilterOn_Checked" Unchecked="checkBox_FilterOn_Unchecked"/>
     </Grid>
 </Window>

@@ -118,5 +118,17 @@ namespace TwitchVRNotifications.Properties {
                 this["AutoSave"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FilterOn {
+            get {
+                return ((bool)(this["FilterOn"]));
+            }
+            set {
+                this["FilterOn"] = value;
+            }
+        }
     }
 }

@@ -51,9 +51,9 @@ namespace TwitchVRNotifications
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             string needle = p.Needle;
-            if (needle.Length == 0 || e.ChatMessage.Message.IndexOf(needle) == 0)
+            if (!p.FilterOn || needle.Length == 0 || e.ChatMessage.Message.IndexOf(needle) == 0)
             {
-                string message = e.ChatMessage.DisplayName + ": " + (needle.Length > 0 ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
+                string message = e.ChatMessage.DisplayName + ": " + ((p.FilterOn && needle.Length > 0) ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
                 broadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
             }
         }

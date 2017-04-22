@@ -78,51 +78,63 @@ namespace TwitchVRNotifications
             RGBtoBGR(ref color); // Fix color
             if(p.ClientID.Length == 0 || p.PlaceholderLogo.Length == 0)
             {
-                
-                var bmp = new Bitmap(1, 1);
-                bmp.SetPixel(0, 0, color);              
-                BitmapData TextureData = bitmapDataFromBitmap(bmp); // Allocate
-                broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
+                broadcastNotification(message, iconFromBitmapData(generateSingleColorBitmapData(color)));
                 return;
             }
 
-            WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
-            request.Headers.Add("Client-ID: " + p.ClientID);
-            using (var response = request.GetResponse())
-            using (var stream = response.GetResponseStream())
+            try
             {
-                StreamReader reader = new StreamReader(stream);
-                string json = reader.ReadToEnd();
-                stream.Close();
-
-                var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
-                string logoUrl = jsonObj["logo"];
-                bool userHasLogo = logoUrl != null;
-                if (!userHasLogo) logoUrl = p.PlaceholderLogo;
-
-                // Load image
-                WebRequest imgRequest = WebRequest.Create(logoUrl);
-                using (var imgResponse = imgRequest.GetResponse())
-                using (var imgStream = imgResponse.GetResponseStream())
+                WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
+                request.Headers.Add("Client-ID: " + p.ClientID);
+                using (var response = request.GetResponse())
+                using (var stream = response.GetResponseStream())
                 {
-                    Bitmap bmp = new Bitmap(imgStream);
-                    RGBtoBGR(bmp); // Fix color
+                    StreamReader reader = new StreamReader(stream);
+                    string json = reader.ReadToEnd();
+                    stream.Close();
 
-                    // http://stackoverflow.com/a/27318979
+                    var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
+                    string logoUrl = jsonObj["logo"];
+                    bool userHasLogo = logoUrl != null;
+                    if (!userHasLogo) logoUrl = p.PlaceholderLogo;
 
-                    Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
-                    Graphics gfx = Graphics.FromImage(bmpEdit);
-                    Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
-                    gfx.Clear(color); // Background
-                    gfx.DrawImageUnscaledAndClipped(bmp, rect);
-                    System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
-                    if (userHasLogo) gfx.DrawRectangle(pen, rect); // Outline
-                    userLogos.Add(b64name, bmpEdit); // Cache
-                    BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
-                    broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
+                    // Load image
+                    WebRequest imgRequest = WebRequest.Create(logoUrl);
+
+                    using (var imgResponse = imgRequest.GetResponse())
+                    using (var imgStream = imgResponse.GetResponseStream())
+                    {
+                        Bitmap bmp = new Bitmap(imgStream);
+                        RGBtoBGR(bmp); // Fix color
+
+                        // http://stackoverflow.com/a/27318979
+
+                        Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
+                        Graphics gfx = Graphics.FromImage(bmpEdit);
+                        Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
+                        gfx.Clear(color); // Background
+                        gfx.DrawImageUnscaledAndClipped(bmp, rect);
+                        System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
+                        if (userHasLogo) gfx.DrawRectangle(pen, rect); // Outline
+                        userLogos.Add(b64name, bmpEdit); // Cache
+                        BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
+                        broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
+                    }
                 }
-
             }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                broadcastNotification(message, iconFromBitmapData(generateSingleColorBitmapData(color)));
+                return;
+            }
+        }
+
+        private BitmapData generateSingleColorBitmapData(Color color)
+        {
+            var bmp = new Bitmap(1, 1);
+            bmp.SetPixel(0, 0, color);
+            return bitmapDataFromBitmap(bmp);
         }
 
         private void broadcastNotification(string message, NotificationBitmap_t icon)

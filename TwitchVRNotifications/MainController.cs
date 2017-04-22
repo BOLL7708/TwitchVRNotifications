@@ -13,6 +13,8 @@ using TwitchLib.Models.Client;
 using Valve.VR;
 using System.Diagnostics;
 using System.Text;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 
 namespace TwitchVRNotifications
 {
@@ -64,6 +66,9 @@ namespace TwitchVRNotifications
         public void broadcastNotification(string username, string message, System.Drawing.Color color)
         {
             string b64name = Base64Encode(username);
+            /*
+             * If we have a cached bitmap we can skip the rest
+             */
             if (userLogos.ContainsKey(b64name))
             {
                 Bitmap bmp;
@@ -76,12 +81,21 @@ namespace TwitchVRNotifications
             }
 
             RGBtoBGR(ref color); // Fix color
-            if(p.ClientID.Length == 0 || p.PlaceholderLogo.Length == 0)
+            /*
+             * Will skip web requests if no Kraken access
+             */
+            if(p.ClientID.Length == 0)
             {
-                broadcastNotification(message, iconFromBitmapData(generateSingleColorBitmapData(color)));
+                broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
 
+            /* 
+             * Load user data from Kraken
+             * Load user icon if available, else placeholder
+             * If icon draw border
+             * Display notification
+             */
             try
             {
                 WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
@@ -95,12 +109,9 @@ namespace TwitchVRNotifications
 
                     var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
                     string logoUrl = jsonObj["logo"];
-                    bool userHasLogo = logoUrl != null;
-                    if (!userHasLogo) logoUrl = p.PlaceholderLogo;
 
                     // Load image
-                    WebRequest imgRequest = WebRequest.Create(logoUrl);
-
+                    WebRequest imgRequest = WebRequest.Create(logoUrl); // Will break if no url
                     using (var imgResponse = imgRequest.GetResponse())
                     using (var imgStream = imgResponse.GetResponseStream())
                     {
@@ -115,7 +126,8 @@ namespace TwitchVRNotifications
                         gfx.Clear(color); // Background
                         gfx.DrawImageUnscaledAndClipped(bmp, rect);
                         System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
-                        if (userHasLogo) gfx.DrawRectangle(pen, rect); // Outline
+                        gfx.DrawRectangle(pen, rect); // Outline
+                        gfx.Flush();
                         userLogos.Add(b64name, bmpEdit); // Cache
                         BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
                         broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
@@ -125,15 +137,38 @@ namespace TwitchVRNotifications
             catch (Exception e)
             {
                 Debug.WriteLine(e.Message);
-                broadcastNotification(message, iconFromBitmapData(generateSingleColorBitmapData(color)));
+                broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
         }
 
-        private BitmapData generateSingleColorBitmapData(Color color)
+        private BitmapData generatePlaceholderBitmapData(Color color, String username, String b64name)
         {
+            /*
             var bmp = new Bitmap(1, 1);
             bmp.SetPixel(0, 0, color);
+            */
+            Bitmap bmp = new Bitmap(300, 300);
+            Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
+
+            Graphics gfx = Graphics.FromImage(bmp);
+            gfx.Clear(color); // Background
+
+            if (username.Length > 0)
+            {
+                string letter = username.Substring(0, 1).ToUpper();
+                gfx.SmoothingMode = SmoothingMode.AntiAlias;
+                gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                gfx.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                StringFormat sf = new StringFormat();
+                sf.Alignment = StringAlignment.Center;
+                sf.LineAlignment = StringAlignment.Center;
+                gfx.DrawString(letter, new Font("Tahoma", 150), Brushes.White, rect, sf);
+                gfx.Flush();
+            }
+            
+            userLogos.Add(b64name, bmp); // Cache
             return bitmapDataFromBitmap(bmp);
         }
 

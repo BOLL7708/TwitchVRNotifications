@@ -19,9 +19,6 @@
         <Label x:Name="label3" Content="Kraken API client-ID:" HorizontalAlignment="Left" Margin="16,103,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_ClientID" HorizontalAlignment="Left" Height="23" Margin="139,107,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248" LostFocus="textBox_ClientID_LostFocus"/>
         <CheckBox x:Name="checkBox_AutoConnectChat" Content="Auto-connect chat" HorizontalAlignment="Left" Margin="334,16,0,0" VerticalAlignment="Top" Checked="checkBox_AutoConnectChat_Checked" Unchecked="checkBox_AutoConnectChat_Unchecked"/>
-        <TextBox x:Name="textBox_PlaceholderLogo" HorizontalAlignment="Left" Height="23" Margin="139,139,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="248" LostFocus="textBox_PlaceholderLogo_LostFocus"/>
-        <Label x:Name="label5" Content="Default logo file/url:" HorizontalAlignment="Left" Margin="18,135,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="button_Browse" Content="Browse" HorizontalAlignment="Left" Margin="392,139,0,0" VerticalAlignment="Top" Width="60" Click="button_Browse_Click" Height="22"/>
         <Button x:Name="button_InitOpenVR" Content="Init OpenVR" HorizontalAlignment="Left" Margin="332,291,0,0" VerticalAlignment="Top" Width="120" Click="button_InitOpenVR_Click"/>
         <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="139,202,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="170" LostFocus="textBox_TestUsername_LostFocus"/>
         <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="23" Margin="139,233,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="313" LostFocus="textBox_TestMessage_LostFocus"/>

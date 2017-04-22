@@ -33,7 +33,6 @@ namespace TwitchVRNotifications
             textBox_Needle.Text = p.Needle;
             textBox_ClientID.Text = p.ClientID;
             checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
-            textBox_PlaceholderLogo.Text = p.PlaceholderLogo;
             textBox_TestUsername.Text = p.TestUsername;
             textBox_TestMessage.Text = p.TestMessage;
             checkBox_AutoSave.IsChecked = p.AutoSave;
@@ -47,7 +46,6 @@ namespace TwitchVRNotifications
             p.Needle = textBox_Needle.Text;
             p.ClientID = textBox_ClientID.Text;
             p.AutoConnectChat = (bool)checkBox_AutoConnectChat.IsChecked;
-            p.PlaceholderLogo = textBox_PlaceholderLogo.Text;
             p.TestUsername = textBox_TestUsername.Text;
             p.TestMessage = textBox_TestMessage.Text;
             p.AutoSave = (bool)checkBox_AutoSave.IsChecked;
@@ -63,26 +61,6 @@ namespace TwitchVRNotifications
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
             if (controller.connectChat()) button_Connect.IsEnabled = false;
-        }
-
-        private void button_Browse_Click(object sender, RoutedEventArgs e)
-        {
-            // http://stackoverflow.com/a/10315283
-
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.DefaultExt = ".jpg";
-            dlg.Filter = "JPG Files (*.jpg)|*.jpg|JPEG Files (*.jpeg)|*.jpeg|PNG Files (*.png)";
-            bool? result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filename = dlg.FileName;
-                textBox_PlaceholderLogo.Text = filename;
-                if (p.AutoSave)
-                {
-                    p.PlaceholderLogo = filename;
-                    p.Save();
-                }
-            }
         }
 
         private void button_Test_Click(object sender, RoutedEventArgs e)
@@ -132,15 +110,6 @@ namespace TwitchVRNotifications
             if (p.AutoSave)
             {
                 p.ClientID = textBox_ClientID.Text;
-                p.Save();
-            }
-        }
-
-        private void textBox_PlaceholderLogo_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (p.AutoSave)
-            {
-                p.PlaceholderLogo = textBox_PlaceholderLogo.Text;
                 p.Save();
             }
         }

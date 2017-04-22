@@ -75,6 +75,17 @@ namespace TwitchVRNotifications
                 }
             }
 
+            RGBtoBGR(ref color); // Fix color
+            if(p.ClientID.Length == 0 || p.PlaceholderLogo.Length == 0)
+            {
+                
+                var bmp = new Bitmap(1, 1);
+                bmp.SetPixel(0, 0, color);              
+                BitmapData TextureData = bitmapDataFromBitmap(bmp); // Allocate
+                broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
+                return;
+            }
+
             WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
             request.Headers.Add("Client-ID: " + p.ClientID);
             using (var response = request.GetResponse())
@@ -101,7 +112,6 @@ namespace TwitchVRNotifications
 
                     Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
                     Graphics gfx = Graphics.FromImage(bmpEdit);
-                    RGBtoBGR(ref color); // Fix color
                     Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
                     gfx.Clear(color); // Background
                     gfx.DrawImageUnscaledAndClipped(bmp, rect);

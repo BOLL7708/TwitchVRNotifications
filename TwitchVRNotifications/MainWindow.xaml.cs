@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Windows;
-
+using System.Windows.Documents;
 
 namespace TwitchVRNotifications
 {
@@ -52,6 +52,12 @@ namespace TwitchVRNotifications
             p.TestMessage = textBox_TestMessage.Text;
             p.AutoSave = (bool)checkBox_AutoSave.IsChecked;
             p.Save();
+        }
+
+        private void ClickedURL(object sender, RoutedEventArgs e)
+        {
+            var link = (Hyperlink)sender;
+            Process.Start(link.NavigateUri.ToString());
         }
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)

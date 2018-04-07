@@ -43,6 +43,7 @@ namespace TwitchVRNotifications
                 return true;
             } catch (Exception e)
             {
+                Debug.WriteLine("Failed to init VR: " + e.Message);
                 return false;
             }
             
@@ -50,9 +51,11 @@ namespace TwitchVRNotifications
 
         private void onMessageReceived(object sender, OnMessageReceivedArgs e)
         {
+            Debug.WriteLine("Message from "+e.ChatMessage.Username+": " + e.ChatMessage.Message);
             string needle = p.Needle;
             if (!p.FilterOn || needle.Length == 0 || e.ChatMessage.Message.IndexOf(needle) == 0)
             {
+                Debug.WriteLine("Broadcasting notifiction...");
                 string message = e.ChatMessage.DisplayName + ": " + ((p.FilterOn && needle.Length > 0) ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
                 broadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
             }
@@ -65,12 +68,19 @@ namespace TwitchVRNotifications
 
         public void broadcastNotification(string username, string message, System.Drawing.Color color)
         {
+            if(!VRController._IsRunning) {
+                Debug.WriteLine("VR controller is not running...");
+                return;
+            }
+
+
             string b64name = Base64Encode(username);
             /*
              * If we have a cached bitmap we can skip the rest
              */
             if (userLogos.ContainsKey(b64name))
             {
+                Debug.WriteLine("User cached, broadcasting cached.");
                 Bitmap bmp;
                 if (userLogos.TryGetValue(b64name, out bmp))
                 {
@@ -86,6 +96,7 @@ namespace TwitchVRNotifications
              */
             if(p.ClientID.Length == 0)
             {
+                Debug.WriteLine("No API access, broadcasting without user portrait.");
                 broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
@@ -111,6 +122,12 @@ namespace TwitchVRNotifications
                     string logoUrl = jsonObj["logo"];
 
                     // Load image
+
+                    // SSL issue: https://stackoverflow.com/a/2904963
+                    ServicePointManager.Expect100Continue = true;
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                    // Use SecurityProtocolType.Ssl3 if needed for compatibility reasons
+
                     WebRequest imgRequest = WebRequest.Create(logoUrl); // Will break if no url
                     using (var imgResponse = imgRequest.GetResponse())
                     using (var imgStream = imgResponse.GetResponseStream())
@@ -119,24 +136,24 @@ namespace TwitchVRNotifications
                         RGBtoBGR(bmp); // Fix color
 
                         // http://stackoverflow.com/a/27318979
-
                         Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
                         Graphics gfx = Graphics.FromImage(bmpEdit);
                         Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
                         gfx.Clear(color); // Background
                         gfx.DrawImageUnscaledAndClipped(bmp, rect);
-                        System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
+                        Pen pen = new Pen(color, 32f);
                         gfx.DrawRectangle(pen, rect); // Outline
                         gfx.Flush();
                         userLogos.Add(b64name, bmpEdit); // Cache
                         BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
+                        Debug.WriteLine("Bitmap acquisition successful, broadcasting.");
                         broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine("Error broadcasting notification: "+e.Message);
                 broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
@@ -144,10 +161,6 @@ namespace TwitchVRNotifications
 
         private BitmapData generatePlaceholderBitmapData(Color color, String username, String b64name)
         {
-            /*
-            var bmp = new Bitmap(1, 1);
-            bmp.SetPixel(0, 0, color);
-            */
             Bitmap bmp = new Bitmap(300, 300);
             Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
 
@@ -167,17 +180,15 @@ namespace TwitchVRNotifications
                 gfx.DrawString(letter, new Font("Tahoma", 150), Brushes.White, rect, sf);
                 gfx.Flush();
             }
-            
-            userLogos.Add(b64name, bmp); // Cache
+            if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
             return bitmapDataFromBitmap(bmp);
         }
 
         private void broadcastNotification(string message, NotificationBitmap_t icon)
         {
             // http://stackoverflow.com/a/14057684
+            // message = Encoding.UTF8.GetString(Encoding.Default.GetBytes(message));
 
-            byte[] bytes = Encoding.Default.GetBytes(message);
-            message = Encoding.UTF8.GetString(bytes); // Still does not fix ÅÄÖ turning to ???
             if(OpenVR_Initiated)
             {
                 VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);

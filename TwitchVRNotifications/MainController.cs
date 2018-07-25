@@ -26,6 +26,7 @@ namespace TwitchVRNotifications
         Overlay overlay;
         Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
         public bool OpenVR_Initiated = false;
+        private int connectionAttempts = 0;
 
         public MainController()
         {
@@ -59,6 +60,51 @@ namespace TwitchVRNotifications
                 string message = e.ChatMessage.DisplayName + ": " + ((p.FilterOn && needle.Length > 0) ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
                 broadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
             }
+        }
+
+        private void onBeingHosted(object sender, OnBeingHostedArgs e)
+        {
+            var host = e.HostedByChannel;
+            var viewers = e.Viewers;
+            if(viewers > 0)
+            {
+                broadcastNotification(p.UserName, "Hosted by: " + host + " with " + viewers + " viewers.");
+            }
+            else
+            {
+                broadcastNotification(p.UserName, "Hosted by: "+host);
+            }
+        }
+
+        private void onChannelStateChanged(object sender, OnChannelStateChangedArgs e)
+        {
+            var message = "Bot: Channel state: " + e.ChannelState.GetType().ToString();
+            Debug.WriteLine(message);
+            // broadcastNotification(p.UserName, message);
+        }
+
+        private void onDisconnected(object sender, OnDisconnectedArgs e)
+        {
+            var message = "Bot: Disconnected, reconnecting...";
+            Debug.WriteLine(message);
+            broadcastNotification(p.UserName, message);
+            if (p.AutoConnectChat) connectChat();
+        }
+
+        private void onConnectionError(object sender, OnConnectionErrorArgs e)
+        {
+            var message = "Bot: Connection Error: "+e.Error.Message;
+            Debug.WriteLine(message);
+            broadcastNotification(p.UserName, message);
+            if (p.AutoConnectChat) connectChat();
+        }
+
+        private void onConnected(object sender, OnConnectedArgs e)
+        {
+            var message = "Bot: Connected";
+            Debug.WriteLine(message);
+            broadcastNotification(p.UserName, message);
+            connectionAttempts = 0;
         }
 
         public void broadcastNotification(string username, string message)
@@ -218,14 +264,19 @@ namespace TwitchVRNotifications
             return notification_icon;
         }
 
-        public bool connectChat()
+        public void connectChat()
         {
-            if (client != null && client.IsConnected) { client.Disconnect(); client = null; }
+            if (isChatConnected()) { client.Disconnect(); client = null; }
             ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
             client = new TwitchClient(credentials, p.UserName);
             client.OnMessageReceived += onMessageReceived;
+            client.OnChannelStateChanged += onChannelStateChanged;
+            client.OnDisconnected += onDisconnected;
+            client.OnConnectionError += onConnectionError;
+            client.OnConnected += onConnected;
+            client.OnBeingHosted += onBeingHosted;
+            connectionAttempts++;
             client.Connect();
-            return client.IsConnected;
         }
 
         public bool isChatConnected()

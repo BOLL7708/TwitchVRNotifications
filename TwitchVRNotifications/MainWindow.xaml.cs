@@ -67,7 +67,7 @@ namespace TwitchVRNotifications
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            if (controller.connectChat()) button_Connect.IsEnabled = false;
+            if (controller.isChatConnected()) button_Connect.IsEnabled = false;
         }
 
         private void button_Test_Click(object sender, RoutedEventArgs e)

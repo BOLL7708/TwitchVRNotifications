@@ -29,7 +29,7 @@
             <Hyperlink NavigateUri="https://twitchapps.com/tmi/" Click="ClickedURL">Get chat token</Hyperlink>
         </TextBlock>
         <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="392,128,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
-            <Hyperlink NavigateUri="https://www.twitch.tv/settings/connections" Click="ClickedURL">Get client-ID</Hyperlink>, <Hyperlink NavigateUri="https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843" Click="ClickedURL">instructions</Hyperlink>
+            <Hyperlink NavigateUri="https://glass.twitch.tv/console/apps" Click="ClickedURL">Get client-ID</Hyperlink>, <Hyperlink NavigateUri="https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843" Click="ClickedURL">instructions</Hyperlink>
 
         </TextBlock>
         <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="218,78,0,0" VerticalAlignment="Top" Checked="checkBox_FilterOn_Checked" Unchecked="checkBox_FilterOn_Unchecked"/>

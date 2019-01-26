@@ -7,14 +7,14 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Web.Script.Serialization;
-using TwitchLib;
-using TwitchLib.Events.Client;
-using TwitchLib.Models.Client;
 using Valve.VR;
 using System.Diagnostics;
-using System.Text;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using TwitchLib.Client;
+using TwitchLib.Client.Events;
+using TwitchLib.Client.Models;
+using TwitchLib.Communication.Events;
 
 namespace TwitchVRNotifications
 {
@@ -64,8 +64,9 @@ namespace TwitchVRNotifications
 
         private void onBeingHosted(object sender, OnBeingHostedArgs e)
         {
-            var host = e.HostedByChannel;
-            var viewers = e.Viewers;
+            var n = e.BeingHostedNotification;
+            var host = n.HostedByChannel;
+            var viewers = n.Viewers;
             if(viewers > 0)
             {
                 broadcastNotification(p.UserName, "Hosted by: " + host + " with " + viewers + " viewers.");
@@ -83,7 +84,7 @@ namespace TwitchVRNotifications
             // broadcastNotification(p.UserName, message);
         }
 
-        private void onDisconnected(object sender, OnDisconnectedArgs e)
+        private void onDisconnected(object sender, OnDisconnectedEventArgs e)
         {
             var message = "Bot: Disconnected, reconnecting...";
             Debug.WriteLine(message);
@@ -268,7 +269,8 @@ namespace TwitchVRNotifications
         {
             if (isChatConnected()) { client.Disconnect(); client = null; }
             ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
-            client = new TwitchClient(credentials, p.UserName);
+            client = new TwitchClient();
+            client.Initialize(credentials, p.UserName);
             client.OnMessageReceived += onMessageReceived;
             client.OnChannelStateChanged += onChannelStateChanged;
             client.OnDisconnected += onDisconnected;

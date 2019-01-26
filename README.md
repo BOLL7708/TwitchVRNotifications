@@ -2,11 +2,14 @@
 A compantion application for SteamVR that pipes Twitch chat messages to SteamVR notifications
 ![SteamVR notification triggered by Twitch chat](https://i.imgur.com/pKchzJk.png)
 
-This application is being worked on very sporadically but has gotten quite stable so here it is. 
+This application is being worked on sporadically but has gotten quite stable so here it is.
+
 It was made mainly to get noticable delivery of chat messages as I often missed chat.
 
+Development has been ad hoc so the interface is quite raw, but functional.
+
 ## Use
-The interface should be somewhat self-explanatory, but just here is some fleshed out instructions.
+The options and buttons should be somewhat self-explanatory, but here are some fleshed out instructions just in case.
 ### Main setup
 * **Twitch username**: fill in your Twitch username, this is used to authenticate the chat bot that connects to your channel as well as when doing SteamVR notifications about bot status.
 * **Auto-connect chat**: As it says, will automatically connect the chat bot to Twitch upon application launch.
@@ -26,6 +29,10 @@ The interface should be somewhat self-explanatory, but just here is some fleshed
 ## Note
 * One main concern is that this is running a quite old version of the OpenVR DLL, this due to relying on [a library](https://github.com/artumino/SteamVR_HUDCenter) that fixes the broken endpoints for notifications that exist in the C# header provided by Valve. This means if Valve does breaking changes to OpenVR this might stop working.
 * The application will close if SteamVR is closed, this as exiting is not handled yet. I'm not sure if I can actually affect it as I'm using the above library for OpenVR interactions.
-* This was developed very much ad hoc, the interface is super raw and a bit clunky. As it's currently working well enough there are no immediate plans for major changes.
 * After first run, filling in all the information, if it does not work properly try just restarting it. There are apparently a few hickups on init when the values are missing.
 * Chat OAuth token and Kraken Client ID are encrypted based on the current user using the system.
+
+## Planned features?
+* Calculate where to split too long text to allow optional multi-notification messages. Now there is ellipsizing.
+* Add field to fill in usernames to ignore, for things like channel bots.
+* An icon maybe?

@@ -157,7 +157,7 @@ namespace TwitchVRNotifications
             try
             {
                 WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
-                request.Headers.Add("Client-ID: " + p.ClientID);
+                request.Headers.Add("Client-ID: " + Utils.DecryptStringFromBase64(p.ClientID, p.Entropy));
                 using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
@@ -268,7 +268,7 @@ namespace TwitchVRNotifications
         public void connectChat()
         {
             if (isChatConnected()) { client.Disconnect(); client = null; }
-            ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, p.AuthToken);
+            ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, Utils.DecryptStringFromBase64(p.AuthToken, p.Entropy));
             client = new TwitchClient();
             client.Initialize(credentials, p.UserName);
             client.OnMessageReceived += onMessageReceived;

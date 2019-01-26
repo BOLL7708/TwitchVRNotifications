@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Documents;
 
@@ -15,6 +16,11 @@ namespace TwitchVRNotifications
         public MainWindow()
         {
             InitializeComponent();
+            if (p.Entropy.Length == 0)
+            {
+                p.Entropy = Utils.BytesToBase64String(Utils.GetRandomBytes(16));
+                p.Save();
+            }
             loadSettings();
             if (controller.OpenVR_Initiated) button_InitOpenVR.IsEnabled = false;
             if (controller.isChatConnected()) button_Connect.IsEnabled = false;
@@ -29,9 +35,9 @@ namespace TwitchVRNotifications
         {
             // Load settings
             textBox_UserName.Text = p.UserName;
-            passwordBox_AuthToken.Password = p.AuthToken;
+            passwordBox_AuthToken.Password = Utils.DecryptStringFromBase64(p.AuthToken, p.Entropy);
             textBox_Needle.Text = p.Needle;
-            passwordBox_ClientID.Password = p.ClientID;
+            passwordBox_ClientID.Password = Utils.DecryptStringFromBase64(p.ClientID, p.Entropy);
             checkBox_AutoConnectChat.IsChecked = p.AutoConnectChat;
             textBox_TestUsername.Text = p.TestUsername;
             textBox_TestMessage.Text = p.TestMessage;
@@ -43,9 +49,9 @@ namespace TwitchVRNotifications
         {
             // Save settings
             p.UserName = textBox_UserName.Text;
-            p.AuthToken = passwordBox_AuthToken.Password;
+            p.AuthToken = Utils.EncryptStringToBase64(passwordBox_AuthToken.Password, p.Entropy);
             p.Needle = textBox_Needle.Text;
-            p.ClientID = passwordBox_ClientID.Password;
+            p.ClientID = Utils.EncryptStringToBase64(passwordBox_ClientID.Password, p.Entropy);
             p.AutoConnectChat = (bool)checkBox_AutoConnectChat.IsChecked;
             p.TestUsername = textBox_TestUsername.Text;
             p.TestMessage = textBox_TestMessage.Text;
@@ -98,7 +104,7 @@ namespace TwitchVRNotifications
         {
             if (p.AutoSave)
             {
-                p.AuthToken = passwordBox_AuthToken.Password;
+                p.AuthToken = Utils.EncryptStringToBase64(passwordBox_AuthToken.Password, p.Entropy);
                 p.Save();
             }
         }
@@ -116,7 +122,7 @@ namespace TwitchVRNotifications
         {
             if (p.AutoSave)
             {
-                p.ClientID = passwordBox_ClientID.Password;
+                p.ClientID = Utils.EncryptStringToBase64(passwordBox_ClientID.Password, p.Entropy);
                 p.Save();
             }
         }

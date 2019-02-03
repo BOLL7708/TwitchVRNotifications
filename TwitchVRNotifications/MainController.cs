@@ -107,16 +107,30 @@ namespace TwitchVRNotifications
 
         public void broadcastNotification(string username, string message)
         {
-            broadcastNotification(username, message, System.Drawing.Color.Purple);
+            broadcastNotification(username, message, Color.Purple);
         }
 
-        public void broadcastNotification(string username, string message, System.Drawing.Color color)
+        public void broadcastNotification(string username, string message, Color color)
         {
             if(!VRController.IsInitialized()) {
                 if (!VRController.Init())
                 {
                     Debug.WriteLine("VR controller is not running...");
                     return;
+                }
+            }
+
+            // Fix because the color coming out of TwitchLib appears broken?!
+            // My issue: https://github.com/TwitchLib/TwitchLib/issues/438
+            if (!color.IsKnownColor)
+            {
+                var colorDec = color.ToArgb();
+                var colorHex = colorDec.ToString("X");
+                if(colorHex.Length == 7)
+                {
+                    colorHex = "ff"+colorHex.Substring(0, colorHex.Length-1);
+                    colorDec = int.Parse(colorHex, System.Globalization.NumberStyles.HexNumber);
+                    color = Color.FromArgb(colorDec);
                 }
             }
 

@@ -1,6 +1,4 @@
-﻿using SteamVR_HUDCenter;
-using SteamVR_HUDCenter.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,6 +13,7 @@ using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Events;
+using BOLL7708;
 
 namespace TwitchVRNotifications
 {
@@ -22,8 +21,8 @@ namespace TwitchVRNotifications
     {
         Properties.Settings p = Properties.Settings.Default;
         TwitchClient client;
-        HUDCenterController VRController = new HUDCenterController();
-        Overlay overlay;
+        EasyOpenVRSingleton VRController = EasyOpenVRSingleton.Instance;
+        ulong overlayHandle = 0;
         Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
         public bool OpenVR_Initiated = false;
         private int connectionAttempts = 0;
@@ -38,11 +37,9 @@ namespace TwitchVRNotifications
         {
             try
             {
-                VRController.Init(EVRApplicationType.VRApplication_Background);
-                overlay = new Overlay("Twitch Chat", 0);
-                VRController.RegisterNewItem(overlay);
-                return true;
-            } catch (Exception e)
+                return VRController.Init();
+            }
+            catch (Exception e)
             {
                 Debug.WriteLine("Failed to init VR: " + e.Message);
                 return false;
@@ -115,11 +112,13 @@ namespace TwitchVRNotifications
 
         public void broadcastNotification(string username, string message, System.Drawing.Color color)
         {
-            if(!VRController._IsRunning) {
-                Debug.WriteLine("VR controller is not running...");
-                return;
+            if(!VRController.IsInitialized()) {
+                if (!VRController.Init())
+                {
+                    Debug.WriteLine("VR controller is not running...");
+                    return;
+                }
             }
-
 
             string b64name = Base64Encode(username);
             /*
@@ -233,12 +232,14 @@ namespace TwitchVRNotifications
 
         private void broadcastNotification(string message, NotificationBitmap_t icon)
         {
-            // http://stackoverflow.com/a/14057684
-            // message = Encoding.UTF8.GetString(Encoding.Default.GetBytes(message));
+            if(overlayHandle == 0)
+            {
+                overlayHandle = VRController.InitNotificationOverlay("Twitch Chat");
+            }
 
             if(OpenVR_Initiated)
             {
-                VRController.DisplayNotification(message, overlay, EVRNotificationType.Transient, EVRNotificationStyle.Application, icon);
+                VRController.EnqueueNotification(overlayHandle, message, icon);
             }
         }
 
@@ -249,8 +250,8 @@ namespace TwitchVRNotifications
             Bitmap bmp = (Bitmap)bmpIn.Clone();
             BitmapData texData = bmp.LockBits(
                 new Rectangle(0, 0, bmp.Width, bmp.Height),
-                System.Drawing.Imaging.ImageLockMode.ReadOnly,
-                System.Drawing.Imaging.PixelFormat.Format32bppArgb
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb
             );
             return texData;
         }
@@ -306,7 +307,7 @@ namespace TwitchVRNotifications
             bmp.UnlockBits(data);            
         }
 
-        private void RGBtoBGR(ref System.Drawing.Color color)
+        private void RGBtoBGR(ref Color color)
         {
             int argb = color.ToArgb();
             byte[] bytes = BitConverter.GetBytes(argb);
@@ -315,7 +316,7 @@ namespace TwitchVRNotifications
             bytes[0] = b;
             bytes[2] = a;
             argb = BitConverter.ToInt32(bytes, 0);
-            color = System.Drawing.Color.FromArgb(argb);
+            color = Color.FromArgb(argb);
         }
 
         public static string Base64Encode(string plainText)

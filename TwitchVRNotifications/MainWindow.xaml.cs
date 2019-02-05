@@ -23,7 +23,7 @@ namespace TwitchVRNotifications
             }
             loadSettings();
             if (controller.OpenVR_Initiated) button_InitOpenVR.IsEnabled = false;
-            if (controller.isChatConnected()) button_Connect.IsEnabled = false;
+            if (controller.IsChatConnected()) button_Connect.IsEnabled = false;
         }
 
         private void button_Save_Click(object sender, RoutedEventArgs e)
@@ -73,17 +73,17 @@ namespace TwitchVRNotifications
 
         private void button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            if (controller.isChatConnected()) button_Connect.IsEnabled = false;
+            if (controller.IsChatConnected()) button_Connect.IsEnabled = false;
         }
 
         private void button_Test_Click(object sender, RoutedEventArgs e)
         {
-            controller.broadcastNotification(p.TestUsername, p.TestMessage);
+            controller.BroadcastNotification(p.TestUsername, p.TestMessage);
         }
 
         private void button_InitOpenVR_Click(object sender, RoutedEventArgs e)
         {
-            if (controller.initVr()) button_InitOpenVR.IsEnabled = false;
+            if (controller.InitVr()) button_InitOpenVR.IsEnabled = false;
         }
 
         private void checkBox_AutoSave_Checked(object sender, RoutedEventArgs e)

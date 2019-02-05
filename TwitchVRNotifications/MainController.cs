@@ -21,7 +21,7 @@ namespace TwitchVRNotifications
     {
         Properties.Settings p = Properties.Settings.Default;
         TwitchClient client;
-        EasyOpenVRSingleton VRController = EasyOpenVRSingleton.Instance;
+        EasyOpenVRSingleton ovr = EasyOpenVRSingleton.Instance;
         ulong overlayHandle = 0;
         Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
         public bool OpenVR_Initiated = false;
@@ -29,15 +29,15 @@ namespace TwitchVRNotifications
 
         public MainController()
         {
-            OpenVR_Initiated = initVr(); // Init OpenVR
-            if (p.AutoConnectChat) connectChat(); // Connect to chat
+            OpenVR_Initiated = InitVr(); // Init OpenVR
+            if (p.AutoConnectChat) ConnectChat(); // Connect to chat
         }
 
-        public bool initVr()
+        public bool InitVr()
         {
             try
             {
-                return VRController.Init();
+                return ovr.Init();
             }
             catch (Exception e)
             {
@@ -47,7 +47,7 @@ namespace TwitchVRNotifications
             
         }
 
-        private void onMessageReceived(object sender, OnMessageReceivedArgs e)
+        private void OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             Debug.WriteLine("Message from "+e.ChatMessage.Username+": " + e.ChatMessage.Message);
             string needle = p.Needle;
@@ -55,65 +55,65 @@ namespace TwitchVRNotifications
             {
                 Debug.WriteLine("Broadcasting notifiction...");
                 string message = e.ChatMessage.DisplayName + ": " + ((p.FilterOn && needle.Length > 0) ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
-                broadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
+                BroadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
             }
         }
 
-        private void onBeingHosted(object sender, OnBeingHostedArgs e)
+        private void OnBeingHosted(object sender, OnBeingHostedArgs e)
         {
             var n = e.BeingHostedNotification;
             var host = n.HostedByChannel;
             var viewers = n.Viewers;
             if(viewers > 0)
             {
-                broadcastNotification(p.UserName, "Hosted by: " + host + " with " + viewers + " viewers.");
+                BroadcastNotification(p.UserName, "Hosted by: " + host + " with " + viewers + " viewers.");
             }
             else
             {
-                broadcastNotification(p.UserName, "Hosted by: "+host);
+                BroadcastNotification(p.UserName, "Hosted by: "+host);
             }
         }
 
-        private void onChannelStateChanged(object sender, OnChannelStateChangedArgs e)
+        private void OnChannelStateChanged(object sender, OnChannelStateChangedArgs e)
         {
             var message = "Bot: Channel state: " + e.ChannelState.GetType().ToString();
             Debug.WriteLine(message);
             // broadcastNotification(p.UserName, message);
         }
 
-        private void onDisconnected(object sender, OnDisconnectedEventArgs e)
+        private void OnDisconnected(object sender, OnDisconnectedEventArgs e)
         {
             var message = "Bot: Disconnected, reconnecting...";
             Debug.WriteLine(message);
-            broadcastNotification(p.UserName, message);
-            if (p.AutoConnectChat) connectChat();
+            BroadcastNotification(p.UserName, message);
+            if (p.AutoConnectChat) ConnectChat();
         }
 
-        private void onConnectionError(object sender, OnConnectionErrorArgs e)
+        private void OnConnectionError(object sender, OnConnectionErrorArgs e)
         {
             var message = "Bot: Connection Error: "+e.Error.Message;
             Debug.WriteLine(message);
-            broadcastNotification(p.UserName, message);
-            if (p.AutoConnectChat) connectChat();
+            BroadcastNotification(p.UserName, message);
+            if (p.AutoConnectChat) ConnectChat();
         }
 
-        private void onConnected(object sender, OnConnectedArgs e)
+        private void OnConnected(object sender, OnConnectedArgs e)
         {
             var message = "Bot: Connected";
             Debug.WriteLine(message);
-            broadcastNotification(p.UserName, message);
+            BroadcastNotification(p.UserName, message);
             connectionAttempts = 0;
         }
 
-        public void broadcastNotification(string username, string message)
+        public void BroadcastNotification(string username, string message)
         {
-            broadcastNotification(username, message, Color.Purple);
+            BroadcastNotification(username, message, Color.Purple);
         }
 
-        public void broadcastNotification(string username, string message, Color color)
+        public void BroadcastNotification(string username, string message, Color color)
         {
-            if(!VRController.IsInitialized()) {
-                if (!VRController.Init())
+            if(!ovr.IsInitialized()) {
+                if (!ovr.Init())
                 {
                     Debug.WriteLine("VR controller is not running...");
                     return;
@@ -144,8 +144,8 @@ namespace TwitchVRNotifications
                 Bitmap bmp;
                 if (userLogos.TryGetValue(b64name, out bmp))
                 {
-                    NotificationBitmap_t icon = iconFromBitmapData(bitmapDataFromBitmap(bmp));
-                    broadcastNotification(message, icon);
+                    NotificationBitmap_t icon = IconFromBitmapData(BitmapDataFromBitmap(bmp));
+                    BroadcastNotification(message, icon);
                     return;
                 }
             }
@@ -157,7 +157,7 @@ namespace TwitchVRNotifications
             if(p.ClientID.Length == 0)
             {
                 Debug.WriteLine("No API access, broadcasting without user portrait.");
-                broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
+                BroadcastNotification(message, IconFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
 
@@ -205,21 +205,21 @@ namespace TwitchVRNotifications
                         gfx.DrawRectangle(pen, rect); // Outline
                         gfx.Flush();
                         userLogos.Add(b64name, bmpEdit); // Cache
-                        BitmapData TextureData = bitmapDataFromBitmap(bmpEdit); // Allocate
+                        BitmapData TextureData = BitmapDataFromBitmap(bmpEdit); // Allocate
                         Debug.WriteLine("Bitmap acquisition successful, broadcasting.");
-                        broadcastNotification(message, iconFromBitmapData(TextureData)); // Submit
+                        BroadcastNotification(message, IconFromBitmapData(TextureData)); // Submit
                     }
                 }
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Error broadcasting notification: "+e.Message);
-                broadcastNotification(message, iconFromBitmapData(generatePlaceholderBitmapData(color, username, b64name)));
+                BroadcastNotification(message, IconFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
         }
 
-        private BitmapData generatePlaceholderBitmapData(Color color, String username, String b64name)
+        private BitmapData GeneratePlaceholderBitmapData(Color color, String username, String b64name)
         {
             Bitmap bmp = new Bitmap(300, 300);
             Rectangle rect = new Rectangle(Point.Empty, bmp.Size);
@@ -241,23 +241,23 @@ namespace TwitchVRNotifications
                 gfx.Flush();
             }
             if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
-            return bitmapDataFromBitmap(bmp);
+            return BitmapDataFromBitmap(bmp);
         }
 
-        private void broadcastNotification(string message, NotificationBitmap_t icon)
+        private void BroadcastNotification(string message, NotificationBitmap_t icon)
         {
             if(overlayHandle == 0)
             {
-                overlayHandle = VRController.InitNotificationOverlay("Twitch Chat");
+                overlayHandle = ovr.InitNotificationOverlay("Twitch Chat");
             }
 
             if(OpenVR_Initiated)
             {
-                VRController.EnqueueNotification(overlayHandle, message, icon);
+                ovr.EnqueueNotification(overlayHandle, message, icon);
             }
         }
 
-        private BitmapData bitmapDataFromBitmap(Bitmap bmpIn)
+        private BitmapData BitmapDataFromBitmap(Bitmap bmpIn)
         {
             // https://github.com/artumino/SteamVR_HUDCenter/blob/a8e306ba9c6fbe0e9834cd8d49365df42b06fa2e/VRTestApplication/TestForm.cs#L59-L70
 
@@ -270,7 +270,7 @@ namespace TwitchVRNotifications
             return texData;
         }
 
-        private NotificationBitmap_t iconFromBitmapData(BitmapData TextureData)
+        private NotificationBitmap_t IconFromBitmapData(BitmapData TextureData)
         {
             NotificationBitmap_t notification_icon = new NotificationBitmap_t();
             notification_icon.m_pImageData = TextureData.Scan0;
@@ -280,23 +280,23 @@ namespace TwitchVRNotifications
             return notification_icon;
         }
 
-        public void connectChat()
+        public void ConnectChat()
         {
-            if (isChatConnected()) { client.Disconnect(); client = null; }
+            if (IsChatConnected()) { client.Disconnect(); client = null; }
             ConnectionCredentials credentials = new ConnectionCredentials(p.UserName, Utils.DecryptStringFromBase64(p.AuthToken, p.Entropy));
             client = new TwitchClient();
             client.Initialize(credentials, p.UserName);
-            client.OnMessageReceived += onMessageReceived;
-            client.OnChannelStateChanged += onChannelStateChanged;
-            client.OnDisconnected += onDisconnected;
-            client.OnConnectionError += onConnectionError;
-            client.OnConnected += onConnected;
-            client.OnBeingHosted += onBeingHosted;
+            client.OnMessageReceived += OnMessageReceived;
+            client.OnChannelStateChanged += OnChannelStateChanged;
+            client.OnDisconnected += OnDisconnected;
+            client.OnConnectionError += OnConnectionError;
+            client.OnConnected += OnConnected;
+            client.OnBeingHosted += OnBeingHosted;
             connectionAttempts++;
             client.Connect();
         }
 
-        public bool isChatConnected()
+        public bool IsChatConnected()
         {
             return client != null && client.IsConnected;
         }

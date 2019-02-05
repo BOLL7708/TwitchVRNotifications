@@ -14,6 +14,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Events;
 using BOLL7708;
+using System.Threading;
 
 namespace TwitchVRNotifications
 {
@@ -26,11 +27,13 @@ namespace TwitchVRNotifications
         Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
         public bool OpenVR_Initiated = false;
         private int connectionAttempts = 0;
+        private Thread t;
 
         public MainController()
         {
-            OpenVR_Initiated = InitVr(); // Init OpenVR
             if (p.AutoConnectChat) ConnectChat(); // Connect to chat
+            t = new Thread(Worker);
+            if (!t.IsAlive) t.Start();
         }
 
         public bool InitVr()
@@ -44,9 +47,56 @@ namespace TwitchVRNotifications
                 Debug.WriteLine("Failed to init VR: " + e.Message);
                 return false;
             }
-            
         }
 
+        #region worker
+        private void Worker()
+        {
+            Thread.CurrentThread.IsBackground = true;
+            while (true)
+            {
+                if(OpenVR_Initiated)
+                {
+                    var newEvents = new List<VREvent_t>(ovr.GetNewEvents());
+                    var shouldEnd = LookForSystemEvents(newEvents.ToArray());
+                    if (shouldEnd)
+                    {
+                        overlayHandle = 0;
+                        continue;
+                    }
+                    Thread.Sleep(250);
+                }
+                else
+                {
+                    Debug.WriteLine("OpenVR not initiated, go for it!");
+                    OpenVR_Initiated = InitVr();
+                    Thread.Sleep(10000);
+                }
+            }
+        }
+        #endregion
+
+        private Boolean LookForSystemEvents(VREvent_t[] events)
+        {
+            foreach (var e in events)
+            {
+                String name = Enum.GetName(typeof(EVREventType), e.eventType);
+                var age = e.eventAgeSeconds;
+                Debug.WriteLine($"EVENT: {name} ({age}s, i:{e.trackedDeviceIndex})");
+
+                switch ((EVREventType)e.eventType)
+                {
+                    case EVREventType.VREvent_Quit:
+                        OpenVR_Initiated = false;
+                        ovr.AcknowledgeShutdown();
+                        ovr.Shutdown();
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        #region TwitchLib
         private void OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             Debug.WriteLine("Message from "+e.ChatMessage.Username+": " + e.ChatMessage.Message);
@@ -144,7 +194,7 @@ namespace TwitchVRNotifications
                 Bitmap bmp;
                 if (userLogos.TryGetValue(b64name, out bmp))
                 {
-                    NotificationBitmap_t icon = IconFromBitmapData(BitmapDataFromBitmap(bmp));
+                    NotificationBitmap_t icon = EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmap(bmp);
                     BroadcastNotification(message, icon);
                     return;
                 }
@@ -157,7 +207,7 @@ namespace TwitchVRNotifications
             if(p.ClientID.Length == 0)
             {
                 Debug.WriteLine("No API access, broadcasting without user portrait.");
-                BroadcastNotification(message, IconFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
+                BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
 
@@ -205,19 +255,23 @@ namespace TwitchVRNotifications
                         gfx.DrawRectangle(pen, rect); // Outline
                         gfx.Flush();
                         userLogos.Add(b64name, bmpEdit); // Cache
-                        BitmapData TextureData = BitmapDataFromBitmap(bmpEdit); // Allocate
+                        BitmapData TextureData = EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmpEdit); // Allocate
                         Debug.WriteLine("Bitmap acquisition successful, broadcasting.");
-                        BroadcastNotification(message, IconFromBitmapData(TextureData)); // Submit
+                        BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(TextureData)); // Submit
                     }
                 }
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Error broadcasting notification: "+e.Message);
-                BroadcastNotification(message, IconFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
+                BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
         }
+
+        #endregion
+
+        #region Utility
 
         private BitmapData GeneratePlaceholderBitmapData(Color color, String username, String b64name)
         {
@@ -241,44 +295,21 @@ namespace TwitchVRNotifications
                 gfx.Flush();
             }
             if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
-            return BitmapDataFromBitmap(bmp);
+            return EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmp);
         }
 
         private void BroadcastNotification(string message, NotificationBitmap_t icon)
         {
             if(overlayHandle == 0)
             {
-                overlayHandle = ovr.InitNotificationOverlay("Twitch Chat");
+                overlayHandle = ovr.InitNotificationOverlay($"Twitch Chat");
             }
 
             if(OpenVR_Initiated)
             {
                 ovr.EnqueueNotification(overlayHandle, message, icon);
             }
-        }
-
-        private BitmapData BitmapDataFromBitmap(Bitmap bmpIn)
-        {
-            // https://github.com/artumino/SteamVR_HUDCenter/blob/a8e306ba9c6fbe0e9834cd8d49365df42b06fa2e/VRTestApplication/TestForm.cs#L59-L70
-
-            Bitmap bmp = (Bitmap)bmpIn.Clone();
-            BitmapData texData = bmp.LockBits(
-                new Rectangle(0, 0, bmp.Width, bmp.Height),
-                ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb
-            );
-            return texData;
-        }
-
-        private NotificationBitmap_t IconFromBitmapData(BitmapData TextureData)
-        {
-            NotificationBitmap_t notification_icon = new NotificationBitmap_t();
-            notification_icon.m_pImageData = TextureData.Scan0;
-            notification_icon.m_nWidth = TextureData.Width;
-            notification_icon.m_nHeight = TextureData.Height;
-            notification_icon.m_nBytesPerPixel = 4;
-            return notification_icon;
-        }
+        }      
 
         public void ConnectChat()
         {
@@ -340,5 +371,7 @@ namespace TwitchVRNotifications
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
         }
+
+        #endregion
     }
 }

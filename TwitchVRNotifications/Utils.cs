@@ -25,10 +25,10 @@ namespace TwitchVRNotifications
             try
             {
                 protectedBytes = ProtectedData.Protect(secretBytes, additionalEntropy, DataProtectionScope.CurrentUser);
-
-            } catch (CryptographicException e)
+            }
+            catch (CryptographicException e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine($"Encrypt exception: {e.Message}");
             }
             return protectedBytes;
         }
@@ -39,9 +39,10 @@ namespace TwitchVRNotifications
             try
             {
                 secretBytes = ProtectedData.Unprotect(protectedBytes, additionalEntropy, DataProtectionScope.CurrentUser);
-            } catch(CryptographicException e)
+            }
+            catch (CryptographicException e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine($"Decrypt exception: {e.Message}");
             }
             return secretBytes;
         }
@@ -66,9 +67,11 @@ namespace TwitchVRNotifications
             try
             {
                 result = Convert.FromBase64String(base64text);
-            } catch(FormatException e)
+            }
+            catch (FormatException e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine($"Base64 input: {base64text}");
+                Debug.WriteLine($"Base64 to bytes exception: {e.Message}");
             }
             return result;
         }

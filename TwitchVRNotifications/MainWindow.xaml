@@ -3,35 +3,37 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TwitchVRNotifications"
         mc:Ignorable="d"
-        Title="Twitch VR Notifications" Height="377" Width="581" Deactivated="Window_Deactivated">
+        Title="Twitch VR Notifications" Height="552.284" Width="719.419" Deactivated="Window_Deactivated">
     <Grid>
-        <Button x:Name="button_Test" Content="Test notification" HorizontalAlignment="Left" Margin="314,212,0,0" VerticalAlignment="Top" Width="138" Height="23" Click="button_Test_Click"/>
-        <PasswordBox x:Name="passwordBox_AuthToken" HorizontalAlignment="Left" Height="23" Margin="139,45,0,0" VerticalAlignment="Top" Width="248" Password="text" LostFocus="passwordBox_AuthToken_LostFocus"/>
-        <Label x:Name="label" Content="Twitch username:" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label1" Content="Chat auth token:" HorizontalAlignment="Left" Margin="37,41,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="139,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="text" LostFocus="textBox_UserName_LostFocus"/>
-        <Button x:Name="button_Connect" Content="Connect" HorizontalAlignment="Left" Margin="392,45,0,0" VerticalAlignment="Top" Width="60" Click="button_Connect_Click" Height="22"/>
-        <Button x:Name="button_Save" Content="Save settings" HorizontalAlignment="Left" Margin="10,301,0,0" VerticalAlignment="Top" Width="122" Click="button_Save_Click"/>
-        <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="139,76,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="74" LostFocus="textBox_Needle_LostFocus"/>
-        <Label x:Name="label2" Content="Filter messages on:" HorizontalAlignment="Left" Margin="23,72,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label3" Content="Kraken API client-ID:" HorizontalAlignment="Left" Margin="16,123,0,0" VerticalAlignment="Top"/>
-        <PasswordBox x:Name="passwordBox_ClientID" HorizontalAlignment="Left" Password="text" Height="23" Margin="139,127,0,0" VerticalAlignment="Top" Width="248" LostFocus="passwordBox_ClientID_LostFocus"/>
-        <CheckBox x:Name="checkBox_AutoConnectChat" Content="Auto-connect chat" HorizontalAlignment="Left" Margin="334,16,0,0" VerticalAlignment="Top" Checked="checkBox_AutoConnectChat_Checked" Unchecked="checkBox_AutoConnectChat_Unchecked"/>
-        <Button x:Name="button_InitOpenVR" Content="Init OpenVR" HorizontalAlignment="Left" Margin="332,301,0,0" VerticalAlignment="Top" Width="120" Click="button_InitOpenVR_Click"/>
-        <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="139,212,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="170" LostFocus="textBox_TestUsername_LostFocus"/>
-        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="23" Margin="139,243,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="313" LostFocus="textBox_TestMessage_LostFocus"/>
-        <CheckBox x:Name="checkBox_AutoSave" Content="Auto-save" HorizontalAlignment="Left" Margin="139,304,0,0" VerticalAlignment="Top" Checked="checkBox_AutoSave_Checked"/>
-        <Label x:Name="label4" Content="Test username:" HorizontalAlignment="Left" Margin="44,208,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label6" Content="Test message:" HorizontalAlignment="Left" Margin="49,239,0,0" VerticalAlignment="Top"/>
-        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="457,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+        <Button x:Name="button_Test" Content="Test notification" HorizontalAlignment="Left" Margin="312,275,0,0" VerticalAlignment="Top" Width="138" Height="23" Click="Button_Test_Click"/>
+        <PasswordBox x:Name="passwordBox_ClientId" HorizontalAlignment="Left" Height="23" Margin="138,129,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
+        <Label x:Name="label" Content="Bot username:" HorizontalAlignment="Left" Margin="47,33,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label1" Content="App client ID:" HorizontalAlignment="Left" Margin="52,128,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="138,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text" IsEnabled="False"/>
+        <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="223,378,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="74"/>
+        <Label x:Name="label2" Content="Filter messages on:" HorizontalAlignment="Left" Margin="107,374,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label3" Content="App secret:" HorizontalAlignment="Left" Margin="64,153,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="passwordBox_Secret" HorizontalAlignment="Left" Password="text" Height="23" Margin="138,157,0,0" VerticalAlignment="Top" Width="248" IsEnabled="False"/>
+        <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="137,275,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="170"/>
+        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="23" Margin="137,306,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="313"/>
+        <Label x:Name="label4" Content="Test username:" HorizontalAlignment="Left" Margin="42,271,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label6" Content="Test message:" HorizontalAlignment="Left" Margin="47,302,0,0" VerticalAlignment="Top"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="555,205,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
             <Hyperlink NavigateUri="https://twitchapps.com/tmi/" Click="ClickedURL">Get chat token</Hyperlink>
         </TextBlock>
-        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="392,128,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="520,233,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
             <Hyperlink NavigateUri="https://glass.twitch.tv/console/apps" Click="ClickedURL">Get client-ID</Hyperlink>, <Hyperlink NavigateUri="https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843" Click="ClickedURL">instructions</Hyperlink>
 
         </TextBlock>
-        <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="218,78,0,0" VerticalAlignment="Top" Checked="checkBox_FilterOn_Checked" Unchecked="checkBox_FilterOn_Unchecked"/>
+        <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="302,380,0,0" VerticalAlignment="Top" Checked="CheckBox_FilterOn_Checked" Unchecked="CheckBox_FilterOn_Unchecked"/>
+        <Button x:Name="button_EditClientId" Content="Edit" HorizontalAlignment="Left" Margin="391,131,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditClientId_Click"/>
+        <Button x:Name="button_EditSecret" Content="Edit" HorizontalAlignment="Left" Margin="391,156,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditSecret_Click"/>
+        <Button x:Name="button_EditUsername" Content="Edit" HorizontalAlignment="Left" Margin="391,36,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditUsername_Click"/>
+        <Label x:Name="label_OpenVRStatus" Content="OpenVR initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="508,70,0,0" VerticalAlignment="Top" Height="50" Width="146" Background="#FF646464" Foreground="White"/>
+        <Label x:Name="label_ChatBotStatus" Content="Chat bot initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="508,126,0,0" VerticalAlignment="Top" Height="50" Width="146" Background="#FF646464" Foreground="White"/>
+        <Button x:Name="button_EditChatToken" Content="Edit" HorizontalAlignment="Left" Margin="391,64,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditChatToken_Click"/>
+        <Label x:Name="label_Copy" Content="Chat token:" HorizontalAlignment="Left" Margin="63,61,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="passwordBox_ChatToken" HorizontalAlignment="Left" Height="23" Margin="138,65,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
     </Grid>
 </Window>

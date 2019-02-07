@@ -26,60 +26,48 @@ namespace TwitchVRNotifications.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string UserName {
+        public string BotUsername {
             get {
-                return ((string)(this["UserName"]));
+                return ((string)(this["BotUsername"]));
             }
             set {
-                this["UserName"] = value;
+                this["BotUsername"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string AuthToken {
+        public string AppClientId {
             get {
-                return ((string)(this["AuthToken"]));
+                return ((string)(this["AppClientId"]));
             }
             set {
-                this["AuthToken"] = value;
+                this["AppClientId"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Needle {
+        public string AppSecret {
             get {
-                return ((string)(this["Needle"]));
+                return ((string)(this["AppSecret"]));
             }
             set {
-                this["Needle"] = value;
+                this["AppSecret"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ClientID {
+        public string MessagePrefix {
             get {
-                return ((string)(this["ClientID"]));
+                return ((string)(this["MessagePrefix"]));
             }
             set {
-                this["ClientID"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AutoConnectChat {
-            get {
-                return ((bool)(this["AutoConnectChat"]));
-            }
-            set {
-                this["AutoConnectChat"] = value;
+                this["MessagePrefix"] = value;
             }
         }
         
@@ -110,24 +98,12 @@ namespace TwitchVRNotifications.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AutoSave {
+        public bool MessagePrefixOn {
             get {
-                return ((bool)(this["AutoSave"]));
+                return ((bool)(this["MessagePrefixOn"]));
             }
             set {
-                this["AutoSave"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool FilterOn {
-            get {
-                return ((bool)(this["FilterOn"]));
-            }
-            set {
-                this["FilterOn"] = value;
+                this["MessagePrefixOn"] = value;
             }
         }
         
@@ -140,6 +116,42 @@ namespace TwitchVRNotifications.Properties {
             }
             set {
                 this["Entropy"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AccessToken {
+            get {
+                return ((string)(this["AccessToken"]));
+            }
+            set {
+                this["AccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BotChatToken {
+            get {
+                return ((string)(this["BotChatToken"]));
+            }
+            set {
+                this["BotChatToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public long AccessTokenExpiration {
+            get {
+                return ((long)(this["AccessTokenExpiration"]));
+            }
+            set {
+                this["AccessTokenExpiration"] = value;
             }
         }
     }

@@ -154,5 +154,185 @@ namespace TwitchVRNotifications.Properties {
                 this["AccessTokenExpiration"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BotChannel {
+            get {
+                return ((string)(this["BotChannel"]));
+            }
+            set {
+                this["BotChannel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowFollower {
+            get {
+                return ((bool)(this["AllowFollower"]));
+            }
+            set {
+                this["AllowFollower"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowSubscriber {
+            get {
+                return ((bool)(this["AllowSubscriber"]));
+            }
+            set {
+                this["AllowSubscriber"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowModerator {
+            get {
+                return ((bool)(this["AllowModerator"]));
+            }
+            set {
+                this["AllowModerator"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowVIP {
+            get {
+                return ((bool)(this["AllowVIP"]));
+            }
+            set {
+                this["AllowVIP"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool IgnoreBroadcaster {
+            get {
+                return ((bool)(this["IgnoreBroadcaster"]));
+            }
+            set {
+                this["IgnoreBroadcaster"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IgnoreBots {
+            get {
+                return ((bool)(this["IgnoreBots"]));
+            }
+            set {
+                this["IgnoreBots"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string IgnoreUsers {
+            get {
+                return ((string)(this["IgnoreUsers"]));
+            }
+            set {
+                this["IgnoreUsers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AvatarEnabled {
+            get {
+                return ((bool)(this["AvatarEnabled"]));
+            }
+            set {
+                this["AvatarEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AvatarFrameEnabled {
+            get {
+                return ((bool)(this["AvatarFrameEnabled"]));
+            }
+            set {
+                this["AvatarFrameEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NotifyConnectivity {
+            get {
+                return ((bool)(this["NotifyConnectivity"]));
+            }
+            set {
+                this["NotifyConnectivity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NotifySubscribed {
+            get {
+                return ((bool)(this["NotifySubscribed"]));
+            }
+            set {
+                this["NotifySubscribed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NotifyHosted {
+            get {
+                return ((bool)(this["NotifyHosted"]));
+            }
+            set {
+                this["NotifyHosted"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NotifyRaided {
+            get {
+                return ((bool)(this["NotifyRaided"]));
+            }
+            set {
+                this["NotifyRaided"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AvatarBadgesEnabled {
+            get {
+                return ((bool)(this["AvatarBadgesEnabled"]));
+            }
+            set {
+                this["AvatarBadgesEnabled"] = value;
+            }
+        }
     }
 }

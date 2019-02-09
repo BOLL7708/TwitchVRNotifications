@@ -3,37 +3,68 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
         mc:Ignorable="d"
-        Title="Twitch VR Notifications" Height="552.284" Width="719.419" Deactivated="Window_Deactivated">
+        Title="Twitch VR Notifications" Height="552.284" Width="719.419" Deactivated="Window_Deactivated" Icon="icon.ico">
     <Grid>
-        <Button x:Name="button_Test" Content="Test notification" HorizontalAlignment="Left" Margin="312,275,0,0" VerticalAlignment="Top" Width="138" Height="23" Click="Button_Test_Click"/>
-        <PasswordBox x:Name="passwordBox_ClientId" HorizontalAlignment="Left" Height="23" Margin="138,129,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
-        <Label x:Name="label" Content="Bot username:" HorizontalAlignment="Left" Margin="47,33,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label1" Content="App client ID:" HorizontalAlignment="Left" Margin="52,128,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="138,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text" IsEnabled="False"/>
-        <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="223,378,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="74"/>
-        <Label x:Name="label2" Content="Filter messages on:" HorizontalAlignment="Left" Margin="107,374,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label3" Content="App secret:" HorizontalAlignment="Left" Margin="64,153,0,0" VerticalAlignment="Top"/>
-        <PasswordBox x:Name="passwordBox_Secret" HorizontalAlignment="Left" Password="text" Height="23" Margin="138,157,0,0" VerticalAlignment="Top" Width="248" IsEnabled="False"/>
-        <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="137,275,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="170"/>
-        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="23" Margin="137,306,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="313"/>
-        <Label x:Name="label4" Content="Test username:" HorizontalAlignment="Left" Margin="42,271,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="label6" Content="Test message:" HorizontalAlignment="Left" Margin="47,302,0,0" VerticalAlignment="Top"/>
-        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="555,205,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
-            <Hyperlink NavigateUri="https://twitchapps.com/tmi/" Click="ClickedURL">Get chat token</Hyperlink>
+        <Button x:Name="button_Test" Content="Test notification" HorizontalAlignment="Left" Margin="498,395,0,0" VerticalAlignment="Top" Width="202" Height="23" Click="Button_Test_Click"/>
+        <PasswordBox x:Name="passwordBox_ClientId" HorizontalAlignment="Left" Height="23" Margin="131,191,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
+        <Label x:Name="label" Content="Bot username:" HorizontalAlignment="Left" Margin="40,80,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label1" Content="App client ID:" HorizontalAlignment="Left" Margin="45,190,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_UserName" HorizontalAlignment="Left" Height="23" Margin="131,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text" IsEnabled="False"/>
+        <TextBox x:Name="textBox_Needle" HorizontalAlignment="Left" Height="23" Margin="131,299,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="74" IsEnabled="False"/>
+        <Label x:Name="label2" Content="Require prefix:" HorizontalAlignment="Left" Margin="40,295,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label3" Content="App secret:" HorizontalAlignment="Left" Margin="57,215,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="passwordBox_Secret" HorizontalAlignment="Left" Password="text" Height="23" Margin="131,219,0,0" VerticalAlignment="Top" Width="248" IsEnabled="False"/>
+        <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="498,319,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="122" IsEnabled="False"/>
+        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="41" Margin="498,346,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="202" KeyUp="TextBox_TestMessage_KeyUp" VerticalScrollBarVisibility="Auto"/>
+        <Label x:Name="label4" Content="Test username:" HorizontalAlignment="Left" Margin="403,315,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label6" Content="Test message:" HorizontalAlignment="Left" Margin="408,342,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_FilterOn" Content="Enabled" HorizontalAlignment="Left" Margin="290,301,0,0" VerticalAlignment="Top" Checked="CheckBox_PrefixOn_Checked" Unchecked="CheckBox_PrefixOn_Unchecked"/>
+        <Button x:Name="button_EditClientId" Content="Edit" HorizontalAlignment="Left" Margin="384,191,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditClientId_Click" Height="23"/>
+        <Button x:Name="button_EditSecret" Content="Edit" HorizontalAlignment="Left" Margin="384,219,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditSecret_Click" Height="22"/>
+        <Button x:Name="button_EditUsername" Content="Edit" HorizontalAlignment="Left" Margin="384,84,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditUsername_Click" Height="23"/>
+        <Label x:Name="label_OpenVRStatus" Content="OpenVR initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="498,111,0,0" VerticalAlignment="Top" Height="50" Width="202" Background="#FF646464" Foreground="White"/>
+        <Label x:Name="label_ChatBotStatus" Content="Chat bot initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="498,56,0,0" VerticalAlignment="Top" Height="50" Width="202" Background="#FF646464" Foreground="White"/>
+        <Button x:Name="button_EditChatToken" Content="Edit" HorizontalAlignment="Left" Margin="384,112,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditChatToken_Click" Height="23"/>
+        <Label x:Name="label_Copy" Content="Bot chat token:" HorizontalAlignment="Left" Margin="36,108,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="passwordBox_ChatToken" HorizontalAlignment="Left" Height="23" Margin="131,112,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
+        <Label Content="Test" HorizontalAlignment="Left" Margin="498,277,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Send a test notification into VR, this will not write in the chat channel."/>
+        <Label Content="Chat Settings" HorizontalAlignment="Left" Margin="131,14,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Settings to enable connecting to a chat channel and monitor messages."/>
+        <TextBox x:Name="textBox_Channel" HorizontalAlignment="Left" Height="23" Margin="131,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" Text="text" IsEnabled="False"/>
+        <Button x:Name="button_EditChannel" Content="Edit" HorizontalAlignment="Left" Margin="384,56,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditChannel_Click" Height="23"/>
+        <Label x:Name="label_Copy1" Content="Channel to monitor:" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="button_EditPrefix" Content="Edit" HorizontalAlignment="Left" Margin="210,299,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditPrefix_Click" Height="22"/>
+        <Label Content="App Auth Settings" HorizontalAlignment="Left" Margin="131,149,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Settings these allows the application to fetch user information to acquire avatars and follower status."/>
+        <Label Content="Status" HorizontalAlignment="Left" Margin="498,14,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Status of the chat bot and the connection to OpenVR."/>
+        <Label Content="Message Filtering" HorizontalAlignment="Left" Margin="131,257,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Set filters so not every single message is being piped into VR."/>
+        <Label x:Name="label2_Copy" Content="Only allow:" HorizontalAlignment="Left" Margin="58,326,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_AllowSubscriber" Content="Subscriber" HorizontalAlignment="Left" Margin="131,352,0,0" VerticalAlignment="Top" Checked="CheckBox_AllowSubscriber_Checked" Unchecked="CheckBox_AllowSubscriber_Unchecked"/>
+        <CheckBox x:Name="checkBox_AllowModerator" Content="Moderator" HorizontalAlignment="Left" Margin="131,372,0,0" VerticalAlignment="Top" Checked="CheckBox_AllowModerator_Checked" Unchecked="CheckBox_AllowModerator_Unchecked"/>
+        <CheckBox x:Name="checkBox_AllowFollower" Content="Follower" HorizontalAlignment="Left" Margin="131,332,0,0" VerticalAlignment="Top" ToolTip="Only works if we have API access." Checked="CheckBox_AllowFollower_Checked" Unchecked="CheckBox_AllowFollower_Unchecked" IsEnabled="False"/>
+        <Label x:Name="label2_Copy1" Content="Notify on:" HorizontalAlignment="Left" Margin="217,326,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_AllowVIP" Content="VIP" HorizontalAlignment="Left" Margin="131,392,0,0" VerticalAlignment="Top" ToolTip="" Checked="CheckBox_AllowVIP_Checked" Unchecked="CheckBox_AllowVIP_Unchecked" IsEnabled="False"/>
+        <Button x:Name="button_EditTestUsername" Content="Edit" HorizontalAlignment="Left" Margin="625,319,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditTestUsername_Click" Height="22"/>
+        <CheckBox x:Name="checkBox_NotifySubscribed" Content="Subscribed to" HorizontalAlignment="Left" Margin="281,352,0,0" VerticalAlignment="Top" Checked="CheckBox_NotifySubscribed_Checked" Unchecked="CheckBox_NotifySubscribed_Unchecked"/>
+        <CheckBox x:Name="checkBox_NotifyConnectivity" Content="Connectivity" HorizontalAlignment="Left" Margin="281,332,0,0" VerticalAlignment="Top" Checked="CheckBox_NotifyConnectivity_Checked" Unchecked="CheckBox_NotifyConnectivity_Unchecked"/>
+        <CheckBox x:Name="checkBox_NotifyHosted" Content="Being hosted" HorizontalAlignment="Left" Margin="281,372,0,0" VerticalAlignment="Top" Checked="CheckBox_NotifyHosted_Checked" Unchecked="CheckBox_NotifyHosted_Unchecked"/>
+        <CheckBox x:Name="checkBox_NotifyRaided" Content="Being raided" HorizontalAlignment="Left" Margin="281,392,0,0" VerticalAlignment="Top" Checked="CheckBox_NotifyRaided_Checked" Unchecked="CheckBox_NotifyRaided_Unchecked"/>
+        <Label x:Name="label2_Copy2" Content="Ignore:" HorizontalAlignment="Left" Margin="79,412,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="checkBox_IgnoreBroadcaster" Content="Broadcaster" HorizontalAlignment="Left" Margin="131,418,0,0" VerticalAlignment="Top" Checked="CheckBox_IgnoreBroadcaster_Checked" Unchecked="CheckBox_IgnoreBroadcaster_Unchecked"/>
+        <CheckBox x:Name="checkBox_IgnoreBots" Content="Bots" HorizontalAlignment="Left" Margin="131,438,0,0" VerticalAlignment="Top" IsEnabled="False" Checked="CheckBox_IgnoreBots_Checked" Unchecked="CheckBox_IgnoreBots_Unchecked"/>
+        <TextBox x:Name="textBox_IgnoreUsers" HorizontalAlignment="Left" Height="38" Margin="131,458,10,10" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="248" IsEnabled="False" VerticalScrollBarVisibility="Disabled"/>
+        <Label x:Name="label2_Copy3" Content="Ignore users:" HorizontalAlignment="Left" Margin="48,454,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="button_EditIgnoreUsers" Content="Edit" HorizontalAlignment="Left" Margin="384,458,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditIgnoreUsers_Click" Height="38"/>
+        <Label Content="Avatar Settings" HorizontalAlignment="Left" Margin="498,166,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" ToolTip="Send a test notification into VR, this will not write in the chat channel."/>
+        <CheckBox x:Name="checkBox_AvatarEnabled" Content="Enabled" HorizontalAlignment="Left" Margin="498,208,0,0" VerticalAlignment="Top" Checked="CheckBox_AvatarEnabled_Checked" Unchecked="CheckBox_AvatarEnabled_Unchecked"/>
+        <CheckBox x:Name="checkBox_AvatarFrameEnabled" Content="Add chat color border" HorizontalAlignment="Left" Margin="498,228,0,0" VerticalAlignment="Top" Checked="CheckBox_AvatarFrameEnabled_Checked" Unchecked="CheckBox_AvatarFrameEnabled_Unchecked"/>
+        <TextBlock x:Name="textBlock_Issue" HorizontalAlignment="Left" Margin="579,440,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+            <Hyperlink NavigateUri="https://github.com/BOLL7708/TwitchVRNotifications/issues" Click="ClickedURL">Report issue on Github</Hyperlink>
         </TextBlock>
-        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="520,233,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
-            <Hyperlink NavigateUri="https://glass.twitch.tv/console/apps" Click="ClickedURL">Get client-ID</Hyperlink>, <Hyperlink NavigateUri="https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843" Click="ClickedURL">instructions</Hyperlink>
-
+        <TextBlock x:Name="textBlock_Twitter" HorizontalAlignment="Left" Margin="547,468,10,10" TextWrapping="Wrap" VerticalAlignment="Top">
+            <Hyperlink NavigateUri="https://twitter.com/BOLL7708" Click="ClickedURL">Contact developer on Twitter</Hyperlink>
         </TextBlock>
-        <CheckBox x:Name="checkBox_FilterOn" Content="On" HorizontalAlignment="Left" Margin="302,380,0,0" VerticalAlignment="Top" Checked="CheckBox_FilterOn_Checked" Unchecked="CheckBox_FilterOn_Unchecked"/>
-        <Button x:Name="button_EditClientId" Content="Edit" HorizontalAlignment="Left" Margin="391,131,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditClientId_Click"/>
-        <Button x:Name="button_EditSecret" Content="Edit" HorizontalAlignment="Left" Margin="391,156,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditSecret_Click"/>
-        <Button x:Name="button_EditUsername" Content="Edit" HorizontalAlignment="Left" Margin="391,36,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditUsername_Click"/>
-        <Label x:Name="label_OpenVRStatus" Content="OpenVR initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="508,70,0,0" VerticalAlignment="Top" Height="50" Width="146" Background="#FF646464" Foreground="White"/>
-        <Label x:Name="label_ChatBotStatus" Content="Chat bot initializing..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="508,126,0,0" VerticalAlignment="Top" Height="50" Width="146" Background="#FF646464" Foreground="White"/>
-        <Button x:Name="button_EditChatToken" Content="Edit" HorizontalAlignment="Left" Margin="391,64,0,0" VerticalAlignment="Top" Width="75" Click="Button_EditChatToken_Click"/>
-        <Label x:Name="label_Copy" Content="Chat token:" HorizontalAlignment="Left" Margin="63,61,0,0" VerticalAlignment="Top"/>
-        <PasswordBox x:Name="passwordBox_ChatToken" HorizontalAlignment="Left" Height="23" Margin="138,65,0,0" VerticalAlignment="Top" Width="248" Password="text" IsEnabled="False"/>
+        <CheckBox x:Name="checkBox_AvatarBadgesEnabled" Content="Display badges" HorizontalAlignment="Left" Margin="498,248,0,0" VerticalAlignment="Top" IsEnabled="False" Checked="CheckBox_AvatarBadgesEnabled_Checked" Unchecked="CheckBox_AvatarBadgesEnabled_Unchecked"/>
     </Grid>
 </Window>

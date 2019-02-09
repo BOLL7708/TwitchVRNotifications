@@ -18,27 +18,15 @@ namespace TwitchVRNotifications
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class InputDialog : Window
+    public partial class InputDialogSmall : Window
     {
         public string value;
 
-        public InputDialog(string value, string label, string description, string link = "")
+        public InputDialogSmall(string value, string label)
         {
             this.value = value;
             InitializeComponent();
             labelValue.Content = label;
-
-            textBlock_ValueDescription.Text = description.Trim()+" ";
-            if(link.Length > 0)
-            {
-                var hp = new Hyperlink(new Run(link));
-                hp.NavigateUri = new Uri("https://"+link);
-                hp.Click += (sender, eventArgs) => {
-                    Process.Start(((Hyperlink) sender).NavigateUri.ToString());
-                };
-                textBlock_ValueDescription.Inlines.Add(hp);
-            }
-
             textBoxValue.Text = value.ToString();
             textBoxValue.Focus();
             textBoxValue.SelectAll();

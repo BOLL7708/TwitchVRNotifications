@@ -1,4 +1,4 @@
-﻿<Window x:Class="TwitchVRNotifications.InputDialog"
+﻿<Window x:Class="TwitchVRNotifications.InputDialogLarge"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -9,7 +9,7 @@
         WindowStartupLocation="CenterOwner"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
-        Title="Change Value" Height="151.613" Width="420.0">
+        Title="Change Value" Height="151.613" Width="420.0" Icon="icon.ico">
     <Grid>
         <Label x:Name="labelValue" Content="Label" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="67"/>
         <TextBox x:Name="textBoxValue" HorizontalAlignment="Left" Height="23" Margin="82,14,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="320"/>

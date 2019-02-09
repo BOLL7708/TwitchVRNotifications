@@ -34,6 +34,7 @@ namespace TwitchVRNotifications
         private bool isConnectingToChat = false;
         private Thread ovrThread;
         private Thread chatThread;
+        private String[] ignoredUsers = new string[0];
 
         public Action<bool, string, string> openVRStatusEvent;
         public Action<bool, string, string> chatBotStatusEvent;
@@ -44,6 +45,7 @@ namespace TwitchVRNotifications
             if (!ovrThread.IsAlive) ovrThread.Start();
             chatThread = new Thread(ChatWorker);
             if (!chatThread.IsAlive) chatThread.Start();
+            ReloadIgnoredUsers();
 
             var task = HelixFollows("","");
             var task2 = HelixUsers("");
@@ -65,35 +67,45 @@ namespace TwitchVRNotifications
             }
         }
 
+        private void ChatStatus(bool status, string label, string toolTip)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+                {
+                    chatBotStatusEvent?.Invoke(status, label, toolTip);
+                }
+            );
+        }
+
         public void ConnectChat()
         {
             if (IsChatConnected()) { client.Disconnect(); client = null; }
-            if (p.BotUsername.Length == 0)
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    chatBotStatusEvent?.Invoke(false, "Bot username missing.", "Please set a username for the chat bot.");
-                });
+            if (p.BotChannel.Length == 0) {
+                ChatStatus(false, "Bot channel not set.", "Please set a channel to connect to.");
+                return;
+            }
+            if (p.BotUsername.Length == 0) {
+                ChatStatus(false, "Bot username not set.", "Please set a username for the chat bot.");
                 return;
             }
             if (p.BotChatToken.Length == 0)
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    chatBotStatusEvent?.Invoke(false, "Chat token missing.", "Please acquire an OAuth chat token to connect to chat.");
-                });
+                ChatStatus(false, "Chat token not set.", "Please acquire an OAuth chat token to connect to chat.");
                 return;
             }
             isConnectingToChat = true;
             ConnectionCredentials credentials = new ConnectionCredentials(p.BotUsername, Utils.DecryptStringFromBase64(p.BotChatToken, p.Entropy));
             if (client == null) client = new TwitchClient();
-            client.Initialize(credentials, p.BotUsername);
+            client.Initialize(credentials, p.BotChannel);
             client.OnMessageReceived += OnMessageReceived;
             client.OnChannelStateChanged += OnChannelStateChanged;
             client.OnDisconnected += OnDisconnected;
             client.OnConnectionError += OnConnectionError;
             client.OnConnected += OnConnected;
             client.OnBeingHosted += OnBeingHosted;
+            client.OnReSubscriber += OnReSubscriber;
+            client.OnNewSubscriber += OnNewSubscriber;
+            client.OnGiftedSubscription += OnGiftedSubscription;
+            client.OnRaidNotification += OnRaidNotification;
             connectionAttempts++;
             try
             {
@@ -101,6 +113,7 @@ namespace TwitchVRNotifications
             }
             catch (Exception e)
             {
+                isConnectingToChat = false;
                 Debug.WriteLine($"Error connecting to chat: {e.Message}");
             }
         }
@@ -140,19 +153,43 @@ namespace TwitchVRNotifications
             return client != null && client.IsConnected;
         }
 
+        public void ReloadIgnoredUsers()
+        {
+            ignoredUsers = p.IgnoreUsers.Split(',');
+            for(var i=0; i<ignoredUsers.Length; i++)
+            {
+                ignoredUsers[i] = ignoredUsers[i].Trim().ToLower();
+            }
+        }
+
         private void OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             Debug.WriteLine("Message from "+e.ChatMessage.Username+": " + e.ChatMessage.Message);
-            string needle = p.MessagePrefix;
-            if (!p.MessagePrefixOn || needle.Length == 0 || e.ChatMessage.Message.IndexOf(needle) == 0)
+            string prefix = p.MessagePrefix;
+            if (p.MessagePrefixOn && prefix.Length > 0 && e.ChatMessage.Message.IndexOf(prefix) != 0) return;
+            if (p.IgnoreBroadcaster && e.ChatMessage.IsBroadcaster) return;
+            if (ignoredUsers.Length > 0 && Array.Exists(ignoredUsers, s => s.Equals(e.ChatMessage.Username.ToLower())))
             {
-                Debug.WriteLine("Broadcasting notifiction...");
-                Debug.WriteLine(e.ChatMessage.RawIrcMessage);
-                var sub = e.ChatMessage.IsSubscriber;
-                var mod = e.ChatMessage.IsModerator;
-                string message = e.ChatMessage.DisplayName + ": " + ((p.MessagePrefixOn && needle.Length > 0) ? e.ChatMessage.Message.Substring(needle.Length).Trim() : e.ChatMessage.Message.Trim());
-                BroadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
+                Debug.WriteLine($"Users {e.ChatMessage.DisplayName} existed in ignore list and was ignored.");
+                return;
             }
+
+            var limitedAccess = p.AllowFollower || p.AllowSubscriber || p.AllowModerator || p.AllowVIP;
+            if(limitedAccess)
+            {
+                if (p.AllowFollower && !true) return; // TODO: Need to do API request here.
+                if (p.AllowSubscriber && !e.ChatMessage.IsSubscriber) return;
+                if (p.AllowModerator && !e.ChatMessage.IsModerator) return;
+                if (p.AllowVIP && !true) return; // TODO: Need to look through badges here.
+            }
+
+            // if (e.ChatMessage.Badges.Find())
+            Debug.WriteLine("Broadcasting notifiction...");
+            Debug.WriteLine(e.ChatMessage.RawIrcMessage);
+            var sub = e.ChatMessage.IsSubscriber;
+            var mod = e.ChatMessage.IsModerator;
+            string message = e.ChatMessage.DisplayName + ": " + ((p.MessagePrefixOn && prefix.Length > 0) ? e.ChatMessage.Message.Substring(prefix.Length).Trim() : e.ChatMessage.Message.Trim());
+            BroadcastNotification(e.ChatMessage.Username, message, e.ChatMessage.Color);
         }
 
         private void OnBeingHosted(object sender, OnBeingHostedArgs e)
@@ -160,14 +197,11 @@ namespace TwitchVRNotifications
             var n = e.BeingHostedNotification;
             var host = n.HostedByChannel;
             var viewers = n.Viewers;
-            if(viewers > 0)
-            {
-                BroadcastNotification(p.BotUsername, "Hosted by: " + host + " with " + viewers + " viewers.");
-            }
-            else
-            {
-                BroadcastNotification(p.BotUsername, "Hosted by: "+host);
-            }
+            var message = $"Hosted by: {host} with {viewers} viewers.";
+            Debug.WriteLine(message);
+            if (!p.NotifyHosted) return;
+            if (viewers > 0) BroadcastNotification(p.BotUsername, message);
+            else BroadcastNotification(p.BotUsername, "Hosted by: "+host);
         }
 
         private void OnChannelStateChanged(object sender, OnChannelStateChangedArgs e)
@@ -179,34 +213,77 @@ namespace TwitchVRNotifications
 
         private void OnDisconnected(object sender, OnDisconnectedEventArgs e)
         {
+            isConnectingToChat = false;
             var message = "Bot: Disconnected, reconnecting...";
             Debug.WriteLine(message);
-            BroadcastNotification(p.BotUsername, message);
+            if(p.NotifyConnectivity) BroadcastNotification(p.BotUsername, message);
             Application.Current.Dispatcher.Invoke(() => {
-                chatBotStatusEvent?.Invoke(false, "Bot disconnected!\nReconnecting...", "The chat bot was disconnected from the server, reconnecting.");
+                chatBotStatusEvent?.Invoke(false, "Bot disconnected!", "The chat bot was disconnected from the server, will reconnect soon.");
             });
         }
 
         private void OnConnectionError(object sender, OnConnectionErrorArgs e)
         {
+            isConnectingToChat = false;
             var message = "Bot: Connection Error: "+e.Error.Message;
             Debug.WriteLine(message);
-            BroadcastNotification(p.BotUsername, message);
+            if(p.NotifyConnectivity) BroadcastNotification(p.BotUsername, message);
             Application.Current.Dispatcher.Invoke(() => {
-                chatBotStatusEvent?.Invoke(false, $"Bot connection error: {e.Error.Message}\nReconnecting...", "The chat bot was unable to connect to the server, reconnecting.");
+                chatBotStatusEvent?.Invoke(false, $"Bot connection error:\n{e.Error.Message}", "The chat bot was unable to connect to the server, will retry.");
             });
         }
 
         private void OnConnected(object sender, OnConnectedArgs e)
         {
+            isConnectingToChat = false;
             var message = "Bot: Connected";
             Debug.WriteLine(message);
-            BroadcastNotification(p.BotUsername, message);
+            if(p.NotifyConnectivity) BroadcastNotification(p.BotUsername, message);
             Application.Current.Dispatcher.Invoke(() => {
-                chatBotStatusEvent?.Invoke(true, $"Bot connected to chat", "The chat bot is connected to the server and listening for messages.");
+                chatBotStatusEvent?.Invoke(true, "Bot connected to chat", "The chat bot is connected to the server and listening for messages.");
             });
             connectionAttempts = 0;
-            isConnectingToChat = false;
+        }
+
+        public void OnReSubscriber(object sender, OnReSubscriberArgs e)
+        {
+            var sysMessage = $"{e.ReSubscriber.DisplayName} resubscribed for {e.ReSubscriber.Months} month(s) using {e.ReSubscriber.SubscriptionPlanName}!";
+            var subMessage = $"{e.ReSubscriber.DisplayName} SubMsg: {e.ReSubscriber.ResubMessage.Trim()}";
+            Debug.WriteLine($"Resubscription: {sysMessage}, {subMessage}");
+            if (!p.NotifySubscribed) return;
+            // TODO: Have these last longer because they're important.
+            // TODO: Should I make new broadcasts that supports using the User ID?
+            BroadcastNotification(e.ReSubscriber.DisplayName, sysMessage);
+            BroadcastNotification(e.ReSubscriber.DisplayName, subMessage);
+        }
+        public void OnNewSubscriber(object sender, OnNewSubscriberArgs e)
+        {
+            var sysMessage = $"{e.Subscriber.DisplayName} subscribed using {e.Subscriber.SubscriptionPlanName}!";
+            var subMessage = $"{e.Subscriber.DisplayName} SubMsg: {e.Subscriber.ResubMessage.Trim()}";
+            Debug.WriteLine($"Subscription: {sysMessage}, {subMessage}");
+            if (!p.NotifySubscribed) return;
+            // TODO: Have these last longer because they're important.
+            // TODO: Should I make new broadcasts that supports using the User ID?
+            BroadcastNotification(e.Subscriber.DisplayName, sysMessage);
+            BroadcastNotification(e.Subscriber.DisplayName, subMessage);
+        }
+        public void OnGiftedSubscription(object sender, OnGiftedSubscriptionArgs e)
+        {
+            var message = $"{e.GiftedSubscription.DisplayName} gifted a subscription to {e.GiftedSubscription.MsgParamRecipientDisplayName} for {e.GiftedSubscription.MsgParamMonths} month(s) using {e.GiftedSubscription.MsgParamSubPlanName}!";
+            Debug.WriteLine(message);
+            if (!p.NotifySubscribed) return;
+            // TODO: Have these last longer because they're important.
+            // TODO: Should I make new broadcasts that supports using the User ID?
+            BroadcastNotification(e.GiftedSubscription.DisplayName, message);
+        }
+        public void OnRaidNotification(object sender, OnRaidNotificationArgs e)
+        {
+            var message = $"{e.RaidNotificaiton.MsgParamDisplayName} is raiding you with {e.RaidNotificaiton.MsgParamViewerCount} viewers!";
+            Debug.WriteLine(message);
+            if (!p.NotifyRaided) return;
+            // TODO: Have these last longer because they're important.
+            // TODO: Should I make new broadcasts that supports using the User ID?
+            BroadcastNotification(e.RaidNotificaiton.MsgParamDisplayName, message);
         }
         #endregion
 
@@ -285,7 +362,7 @@ namespace TwitchVRNotifications
 
         public void BroadcastNotification(string username, string message)
         {
-            BroadcastNotification(username, message, System.Drawing.Color.Purple);
+            BroadcastNotification(username, message, System.Drawing.Color.Transparent);
         }
 
         public void BroadcastNotification(string username, string message, System.Drawing.Color color)
@@ -415,7 +492,6 @@ namespace TwitchVRNotifications
         #endregion
 
         #region Utility
-
         private BitmapData GeneratePlaceholderBitmapData(System.Drawing.Color color, String username, String b64name)
         {
             Bitmap bmp = new Bitmap(300, 300);
@@ -480,7 +556,6 @@ namespace TwitchVRNotifications
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
         }
-
         #endregion
     }
 }

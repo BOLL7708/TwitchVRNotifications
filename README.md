@@ -1,6 +1,6 @@
 # TwitchVRNotifications
 A companion application for OpenVR that pipes Twitch chat messages to notifications in VR
-![SteamVR notification triggered by Twitch chat](https://i.imgur.com/pKchzJk.png)
+![SteamVR notification triggered by Twitch chat](https://i.imgur.com/eKwTCJZ.png)
 
 This application has been worked on sporadically but lately has seen a burst of activity working towards the publishing of the first binaries. Issues will be handled when there is time.
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Net;
 using System.Web.Script.Serialization;
 using Valve.VR;
@@ -130,6 +129,20 @@ namespace TwitchVRNotifications
             Application.Current.Dispatcher.Invoke(() => {
                 accessTokenEvent?.Invoke(false, "Refreshing token...", $"Currently attempting to retrieve a new access token.");
             });
+            if (p.AppClientId.Length == 0)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    accessTokenEvent?.Invoke(false, "Client ID not set", $"Unable to request a token unless client ID is set.");
+                });
+            }
+            if (p.AppSecret.Length == 0)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    accessTokenEvent?.Invoke(false, "Secret not set", $"Unable to request a token unless secret is set.");
+                });
+            }
             var oldAccessToken = "";
             lock(accessTokenLock)
             {

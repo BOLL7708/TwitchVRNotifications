@@ -1,18 +1,21 @@
 # TwitchVRNotifications
-A compantion application for SteamVR that pipes Twitch chat messages to SteamVR notifications
+A companion application for OpenVR that pipes Twitch chat messages to notifications in VR
 ![SteamVR notification triggered by Twitch chat](https://i.imgur.com/pKchzJk.png)
 
 This application has been worked on sporadically but lately has seen a burst of activity working towards the publishing of the first binaries. Issues will be handled when there is time.
 
 My personal motivation to make this was to get chat notifications I could notice, as I often forgot to check other overlays that were attached to my controllers or the world. I used the built in notifications as they always pop up in your field of view.
 
+## Disclaimer
+I hardly know what the word means, but I was told this can be important. This software is provided as is with no warranties or guarantees it will actually work or not blow up your machine or similar cataclysms. That said I'm fairly confident it will do what is advertised.
+
 ## Libraries and SDKs used
 * https://github.com/BOLL7708/EasyOpenVR
 * https://github.com/ValveSoftware/openvr
 * https://github.com/TwitchLib/TwitchLib
 
-## Use
-The options and buttons should be somewhat self-explanatory, there are a number of tooltips, but here are some fleshed out instructions just in case.
+## How to use
+The options and buttons should be somewhat self-explanatory, there are a number of tooltips in the application but here are some fleshed out instructions just in case.
 ### Interface
 ![The application interface](https://i.imgur.com/dTyaJQu.png)
 ### Chat Settings

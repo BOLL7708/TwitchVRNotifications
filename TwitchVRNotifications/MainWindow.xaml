@@ -18,7 +18,7 @@
         <Label x:Name="label3" Content="App secret:" HorizontalAlignment="Left" Margin="57,215,0,0" VerticalAlignment="Top"/>
         <PasswordBox x:Name="passwordBox_Secret" HorizontalAlignment="Left" Password="text" Height="23" Margin="131,219,0,0" VerticalAlignment="Top" Width="248" IsEnabled="False"/>
         <TextBox x:Name="textBox_TestUsername" HorizontalAlignment="Left" Height="23" Margin="498,319,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="122" IsEnabled="False"/>
-        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="41" Margin="498,346,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="202" KeyUp="TextBox_TestMessage_KeyUp" VerticalScrollBarVisibility="Auto"/>
+        <TextBox x:Name="textBox_TestMessage" HorizontalAlignment="Left" Height="41" Margin="498,346,0,0" TextWrapping="Wrap" Text="text" VerticalAlignment="Top" Width="202" KeyUp="TextBox_TestMessage_KeyUp" VerticalScrollBarVisibility="Auto" LostFocus="TextBox_TestMessage_LostFocus"/>
         <Label x:Name="label4" Content="Test username:" HorizontalAlignment="Left" Margin="403,315,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label6" Content="Test message:" HorizontalAlignment="Left" Margin="408,342,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="checkBox_FilterOn" Content="Enabled" HorizontalAlignment="Left" Margin="290,301,0,0" VerticalAlignment="Top" Checked="CheckBox_PrefixOn_Checked" Unchecked="CheckBox_PrefixOn_Unchecked"/>

@@ -21,12 +21,19 @@ namespace TwitchVRNotifications
         public MainWindow()
         {
             InitializeComponent();
+            p = Properties.Settings.Default;
+            if (p.UpgradeNeeded) { // If we move the application we should fetch old settings
+                p.Upgrade();
+                p.Save();
+                p.Reload();
+                p.UpgradeNeeded = false;
+                p.Save();
+            }
 
             controller = new MainController();
             controller.openVRStatusEvent += OnOpenVRStatus;
             controller.chatBotStatusEvent += OnChatBotStatus;
             
-            p = Properties.Settings.Default;
             if (p.Entropy.Length == 0)
             {
                 p.Entropy = Utils.BytesToBase64String(Utils.GetRandomBytes(16));
@@ -420,8 +427,16 @@ namespace TwitchVRNotifications
         {
             if (e.Key == System.Windows.Input.Key.Enter)
             {
+                p.TestMessage = textBox_TestMessage.Text;
+                p.Save();
                 controller.BroadcastNotification(p.TestUsername, p.TestMessage);
             }
+        }
+
+        private void TextBox_TestMessage_LostFocus(object sender, RoutedEventArgs e)
+        {
+            p.TestMessage = textBox_TestMessage.Text;
+            p.Save();
         }
 
         private void Button_Test_Click(object sender, RoutedEventArgs e)

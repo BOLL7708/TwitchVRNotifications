@@ -43,4 +43,5 @@ Three status fields for the various services we connect to.
 
 ## Note
 * Bot chat token, app client ID, app secret and the access token are stored encrypted based on the current user signed in to the system.
-* Feedback is appreciated, the issues section is open.
+* Notifications for subscriptions and raid has not been properly tested, time simply ran out. At some point I'll connect the bot to a popular channel or try to simulate some of these events. If you experience something weird don't hesitate reporting it.
+* Feedback is appreciated, the [issues](https://github.com/BOLL7708/TwitchVRNotifications/issues) section is open.

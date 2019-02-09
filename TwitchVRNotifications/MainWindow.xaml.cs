@@ -56,6 +56,7 @@ namespace TwitchVRNotifications
         private void OnAccessTokenStatus(bool ok, string message, string toolTip)
         {
             UpdateStatusLabel(label_AccessTokenStatus, ok, message, toolTip);
+            Debug.WriteLine("Now enabling button.");
             button_RefreshAccessToken.IsEnabled = true;
         }
         private void UpdateStatusLabel(Label label, bool ok, string message, string toolTip)
@@ -222,8 +223,8 @@ namespace TwitchVRNotifications
 
         private void Button_RefreshAccessToken_Click(object sender, RoutedEventArgs e)
         {
-            controller.RefreshAccessToken(true);
             button_RefreshAccessToken.IsEnabled = false;
+            controller.RefreshAccessToken(true);
         }
         #endregion
 

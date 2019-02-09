@@ -131,17 +131,13 @@ namespace TwitchVRNotifications
             });
             if (p.AppClientId.Length == 0)
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    accessTokenEvent?.Invoke(false, "Client ID not set", $"Unable to request a token unless client ID is set.");
-                });
+                accessTokenEvent?.Invoke(false, "Client ID not set", $"Unable to request a token unless client ID is set.");
+                return;
             }
             if (p.AppSecret.Length == 0)
             {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    accessTokenEvent?.Invoke(false, "Secret not set", $"Unable to request a token unless secret is set.");
-                });
+                accessTokenEvent?.Invoke(false, "Secret not set", $"Unable to request a token unless secret is set.");
+                return;
             }
             var oldAccessToken = "";
             lock(accessTokenLock)
@@ -152,9 +148,7 @@ namespace TwitchVRNotifications
                 {
                     var message = "No need to refresh access token.";
                     Debug.WriteLine(message);
-                    Application.Current.Dispatcher.Invoke(() => {
-                        accessTokenEvent?.Invoke(true, "Token should still be valid", message);
-                    });
+                    accessTokenEvent?.Invoke(true, "Token should still be valid", message);
                     return;
                 }
             }

@@ -68,5 +68,6 @@
         <TextBlock x:Name="textBlock_Twitch" HorizontalAlignment="Left" Margin="485,486,10,10" TextWrapping="Wrap" VerticalAlignment="Top"><Hyperlink NavigateUri="https://twitch.tv/BOLL7708" Click="ClickedURL"><Run Text="Stalk developer on Twitch"/></Hyperlink></TextBlock>
         <Button x:Name="button_RefreshAccessToken" Content="Force access token refresh" HorizontalAlignment="Left" Margin="498,191,0,0" VerticalAlignment="Top" Width="202" Height="22" Click="Button_RefreshAccessToken_Click"/>
         <Label x:Name="label_AccessTokenStatus" Content="Access token status..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="498,146,0,0" VerticalAlignment="Top" Height="40" Width="202" Background="#FF646464" Foreground="White"/>
+        <Label Content="v2.0.38" HorizontalAlignment="Left" Margin="653,481,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

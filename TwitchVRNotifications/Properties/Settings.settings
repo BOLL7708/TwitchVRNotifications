@@ -32,7 +32,7 @@
     <Setting Name="BotChatToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="AccessTokenExpiration" Type="System.Int64" Scope="User">
+    <Setting Name="AccessTokenCreated" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="BotChannel" Type="System.String" Scope="User">
@@ -52,9 +52,6 @@
     </Setting>
     <Setting Name="IgnoreBroadcaster" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="IgnoreBots" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="IgnoreUsers" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

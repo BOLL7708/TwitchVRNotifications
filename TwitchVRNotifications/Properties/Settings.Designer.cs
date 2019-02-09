@@ -146,12 +146,12 @@ namespace TwitchVRNotifications.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public long AccessTokenExpiration {
+        public long AccessTokenCreated {
             get {
-                return ((long)(this["AccessTokenExpiration"]));
+                return ((long)(this["AccessTokenCreated"]));
             }
             set {
-                this["AccessTokenExpiration"] = value;
+                this["AccessTokenCreated"] = value;
             }
         }
         
@@ -224,18 +224,6 @@ namespace TwitchVRNotifications.Properties {
             }
             set {
                 this["IgnoreBroadcaster"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool IgnoreBots {
-            get {
-                return ((bool)(this["IgnoreBots"]));
-            }
-            set {
-                this["IgnoreBots"] = value;
             }
         }
         

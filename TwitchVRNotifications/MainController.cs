@@ -18,6 +18,8 @@ using System.Threading;
 using TwitchLib.Api;
 using System.Threading.Tasks;
 using System.Windows;
+using TwitchLib.Api.Helix.Models.Users;
+using System.Net.Http;
 
 namespace TwitchVRNotifications
 {
@@ -28,16 +30,24 @@ namespace TwitchVRNotifications
         TwitchAPI api = new TwitchAPI();
         EasyOpenVRSingleton ovr = EasyOpenVRSingleton.Instance;
         ulong overlayHandle = 0;
-        Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
+
         public bool OpenVR_Initiated = false;
         private int connectionAttempts = 0;
         private bool isConnectingToChat = false;
+
         private Thread ovrThread;
         private Thread chatThread;
+
+        Dictionary<string, Bitmap> userLogos = new Dictionary<string, Bitmap>();
         private String[] ignoredUsers = new string[0];
+        private readonly object
+            userLogosLock = new object(),
+            ignoredUsersLock = new object(),
+            accessTokenLock = new object();
 
         public Action<bool, string, string> openVRStatusEvent;
         public Action<bool, string, string> chatBotStatusEvent;
+        public Action<bool, string, string> accessTokenEvent;
 
         public MainController()
         {
@@ -46,10 +56,6 @@ namespace TwitchVRNotifications
             chatThread = new Thread(ChatWorker);
             if (!chatThread.IsAlive) chatThread.Start();
             ReloadIgnoredUsers();
-
-            var task = HelixFollows("","");
-            var task2 = HelixUsers("");
-            var task3 = Refresh();
         }
 
         #region TwitchLib
@@ -118,34 +124,77 @@ namespace TwitchVRNotifications
             }
         }
 
-        // WIP
-        private async Task Refresh()
+        // There exists an undocumented TwitchAPI for this but I had issues with it so this is my own implementation.
+        public async void RefreshAccessToken(bool force = false)
         {
-            api.Settings.ClientId = Utils.DecryptStringFromBase64(p.AppClientId, p.Entropy);
-            api.Settings.Secret = Utils.DecryptStringFromBase64(p.AppSecret, p.Entropy);
-            if (p.AccessTokenExpiration < DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 45 * 24 * 60 * 60) // Access token usually lasts 60 days, refresh a bit earlier.
+            Application.Current.Dispatcher.Invoke(() => {
+                accessTokenEvent?.Invoke(false, "Refreshing token...", $"Currently attempting to retrieve a new access token.");
+            });
+            var oldAccessToken = "";
+            lock(accessTokenLock)
             {
-                var at = api.Undocumented.GetAccessToken();
-                p.AccessToken = Utils.EncryptStringToBase64(at, p.Entropy);
-                p.Save();
-                Debug.WriteLine("Fetched new access token.");
+                oldAccessToken = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
+                var expireTime = 45 * 24*60*60; // Access token usually lasts 60 days, refresh a bit earlier.
+                if (!(force || (p.AccessTokenCreated + expireTime) < DateTimeOffset.UtcNow.ToUnixTimeSeconds()))
+                {
+                    var message = "No need to refresh access token.";
+                    Debug.WriteLine(message);
+                    Application.Current.Dispatcher.Invoke(() => {
+                        accessTokenEvent?.Invoke(true, "Token should still be valid", message);
+                    });
+                    return;
+                }
+            }
+            try
+            {
+                var body = new Dictionary<string, string>
+                {
+                    {"client_id", Utils.DecryptStringFromBase64(p.AppClientId, p.Entropy)},
+                    {"client_secret", Utils.DecryptStringFromBase64(p.AppSecret, p.Entropy)},
+                    {"grant_type", "client_credentials"}
+                };
+                var jsonObj = await DoWebRequest("https://id.twitch.tv/oauth2/token", body);
+                string token = jsonObj["access_token"];
+                lock(accessTokenLock)
+                {
+                    p.AccessToken = Utils.EncryptStringToBase64(token, p.Entropy);
+                    p.AccessTokenCreated = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    p.Save();
+                    Debug.WriteLine("Access token was refreshed."+token);
+                    Application.Current.Dispatcher.Invoke(() => {
+                        accessTokenEvent?.Invoke(true, "Successfully refreshed token", $"Token retrieval was successful.");
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Failed to refresh access token: {e.Message}");
+                Application.Current.Dispatcher.Invoke(() => {
+                    accessTokenEvent?.Invoke(false, "Unable to refresh token", $"Unable to retrieve new token: {e.Message}");
+                });
+                return;
+            }
+            try
+            {
+                var body = new Dictionary<string, string>
+                {
+                    {"client_id", Utils.DecryptStringFromBase64(p.AppClientId, p.Entropy)},
+                    {"token", oldAccessToken}
+                };
+                await DoWebRequest("https://id.twitch.tv/oauth2/revoke", body);
+                Debug.WriteLine($"Successfully revoked old token");
+            } catch(Exception e)
+            {
+                Debug.WriteLine($"Revoking old token was unsuccessful: {e.Message}");
             }
         }
 
-        // WIP
-        private async Task HelixFollows(string user1, string user2)
+        private async Task<dynamic> DoWebRequest(string url, Dictionary<string, string> values)
         {
-            api.Settings.AccessToken = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
-            TwitchLib.Api.Helix.Models.Users.GetUsersFollowsResponse follows = await api.Helix.Users.GetUsersFollowsAsync(null, null, 20, user1, user2);
-            Debug.WriteLine($"Total: {follows.TotalFollows}");
-        }
-
-        // WIP
-        private async Task HelixUsers(string userId)
-        {
-            api.Settings.AccessToken = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
-            TwitchLib.Api.Helix.Models.Users.GetUsersResponse users = await api.Helix.Users.GetUsersAsync(new List<string> { userId });
-            Debug.WriteLine($"Avatar URI: {users.Users[0].ProfileImageUrl}");
+            var content = new FormUrlEncodedContent(values);
+            var response = await MainWindow.http.PostAsync(url, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+            return new JavaScriptSerializer().Deserialize<dynamic>(responseString);            
         }
 
         public bool IsChatConnected()
@@ -155,29 +204,52 @@ namespace TwitchVRNotifications
 
         public void ReloadIgnoredUsers()
         {
-            ignoredUsers = p.IgnoreUsers.Split(',');
-            for(var i=0; i<ignoredUsers.Length; i++)
+            lock(ignoredUsersLock)
             {
-                ignoredUsers[i] = ignoredUsers[i].Trim().ToLower();
+                ignoredUsers = p.IgnoreUsers.Split(',');
+                for(var i=0; i<ignoredUsers.Length; i++)
+                {
+                    ignoredUsers[i] = ignoredUsers[i].Trim().ToLower();
+                }
             }
         }
 
-        private void OnMessageReceived(object sender, OnMessageReceivedArgs e)
+        private async void OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             Debug.WriteLine("Message from "+e.ChatMessage.Username+": " + e.ChatMessage.Message);
             string prefix = p.MessagePrefix;
             if (p.MessagePrefixOn && prefix.Length > 0 && e.ChatMessage.Message.IndexOf(prefix) != 0) return;
             if (p.IgnoreBroadcaster && e.ChatMessage.IsBroadcaster) return;
-            if (ignoredUsers.Length > 0 && Array.Exists(ignoredUsers, s => s.Equals(e.ChatMessage.Username.ToLower())))
+            lock(ignoredUsersLock)
             {
-                Debug.WriteLine($"Users {e.ChatMessage.DisplayName} existed in ignore list and was ignored.");
-                return;
+                if (ignoredUsers.Length > 0 && Array.Exists(ignoredUsers, s => s.Equals(e.ChatMessage.Username.ToLower())))
+                {
+                    Debug.WriteLine($"Users {e.ChatMessage.DisplayName} existed in ignore list and was ignored.");
+                    return;
+                }
             }
 
             var limitedAccess = p.AllowFollower || p.AllowSubscriber || p.AllowModerator || p.AllowVIP;
-            if(limitedAccess)
+            if(limitedAccess && !e.ChatMessage.IsBroadcaster)
             {
-                if (p.AllowFollower && !true) return; // TODO: Need to do API request here.
+                if (p.AllowFollower)
+                {
+                    lock(accessTokenLock)
+                    {
+                        api.Settings.ClientId = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
+                        api.Settings.AccessToken = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
+                    }
+                    try
+                    {
+                        var followResponse = await api.Helix.Users.GetUsersFollowsAsync(null, null, 1, e.ChatMessage.UserId, e.ChatMessage.RoomId);
+                        Debug.WriteLine($"Follow count: {followResponse.TotalFollows}");
+                        if (followResponse.TotalFollows == 0) return;
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.WriteLine($"Unable to load follower count: {exception.Message}");
+                    }
+                }
                 if (p.AllowSubscriber && !e.ChatMessage.IsSubscriber) return;
                 if (p.AllowModerator && !e.ChatMessage.IsModerator) return;
                 if (p.AllowVIP && !true) return; // TODO: Need to look through badges here.
@@ -245,6 +317,7 @@ namespace TwitchVRNotifications
             connectionAttempts = 0;
         }
 
+        // Untested
         public void OnReSubscriber(object sender, OnReSubscriberArgs e)
         {
             var sysMessage = $"{e.ReSubscriber.DisplayName} resubscribed for {e.ReSubscriber.Months} month(s) using {e.ReSubscriber.SubscriptionPlanName}!";
@@ -256,6 +329,7 @@ namespace TwitchVRNotifications
             BroadcastNotification(e.ReSubscriber.DisplayName, sysMessage);
             BroadcastNotification(e.ReSubscriber.DisplayName, subMessage);
         }
+        // Untested
         public void OnNewSubscriber(object sender, OnNewSubscriberArgs e)
         {
             var sysMessage = $"{e.Subscriber.DisplayName} subscribed using {e.Subscriber.SubscriptionPlanName}!";
@@ -267,6 +341,7 @@ namespace TwitchVRNotifications
             BroadcastNotification(e.Subscriber.DisplayName, sysMessage);
             BroadcastNotification(e.Subscriber.DisplayName, subMessage);
         }
+        // Untested
         public void OnGiftedSubscription(object sender, OnGiftedSubscriptionArgs e)
         {
             var message = $"{e.GiftedSubscription.DisplayName} gifted a subscription to {e.GiftedSubscription.MsgParamRecipientDisplayName} for {e.GiftedSubscription.MsgParamMonths} month(s) using {e.GiftedSubscription.MsgParamSubPlanName}!";
@@ -276,6 +351,8 @@ namespace TwitchVRNotifications
             // TODO: Should I make new broadcasts that supports using the User ID?
             BroadcastNotification(e.GiftedSubscription.DisplayName, message);
         }
+        
+        // Untested
         public void OnRaidNotification(object sender, OnRaidNotificationArgs e)
         {
             var message = $"{e.RaidNotificaiton.MsgParamDisplayName} is raiding you with {e.RaidNotificaiton.MsgParamViewerCount} viewers!";
@@ -359,13 +436,28 @@ namespace TwitchVRNotifications
             }
             return false;
         }
+        #endregion
+
+        #region Notification Broadcasting
+        public void BroadcastNotificationTest(string username, string message)
+        {
+            BroadcastNotification(username, message, System.Drawing.Color.Purple);
+        }
+
+        public void BroadcastNotificationSystem(string message)
+        {
+            BroadcastNotification(p.BotUsername, message, System.Drawing.Color.Transparent, true); 
+        }
 
         public void BroadcastNotification(string username, string message)
         {
-            BroadcastNotification(username, message, System.Drawing.Color.Transparent);
+            BroadcastNotification(username, message, System.Drawing.Color.Black);
         }
-
         public void BroadcastNotification(string username, string message, System.Drawing.Color color)
+        {
+            BroadcastNotification(username, message, color, false);
+        }
+        public async void BroadcastNotification(string username, string message, System.Drawing.Color color, bool overrideIgnore)
         {
             if(!ovr.IsInitialized()) {
                 if (!ovr.Init())
@@ -393,100 +485,109 @@ namespace TwitchVRNotifications
             /*
              * If we have a cached bitmap we can skip the rest
              */
-            if (userLogos.ContainsKey(b64name))
+            lock(userLogosLock)
             {
-                Debug.WriteLine("User cached, broadcasting cached.");
-                Bitmap bmp;
-                if (userLogos.TryGetValue(b64name, out bmp))
+                if (userLogos.ContainsKey(b64name))
                 {
-                    NotificationBitmap_t icon = EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmap(bmp);
-                    BroadcastNotification(message, icon);
-                    return;
+                    Debug.WriteLine("User cached, broadcasting cached.");
+                    Bitmap bmp;
+                    if (userLogos.TryGetValue(b64name, out bmp))
+                    {
+                        Debug.WriteLine($"Found cached bitmap for {username}, will use that!");
+                        NotificationBitmap_t icon = EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmap(bmp);
+                        SubmitNotification(message, icon);
+                        return;
+                    }
                 }
             }
 
             RGBtoBGR(ref color); // Fix color
             /*
-             * Will skip web requests if no Kraken access
+             * Will skip web requests if avatar disabled or no API access
              */
-            if(p.AppClientId.Length == 0)
+            if(!p.AvatarEnabled || p.AppClientId.Length == 0)
             {
-                Debug.WriteLine("No API access, broadcasting without user portrait.");
-                BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
+                Debug.WriteLine("Avatars disabled or no API access, broadcasting without user portrait.");
+                SubmitNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
 
             /* 
-             * Load user data from Kraken
+             * Load user data from API
              * Load user icon if available, else placeholder
              * If icon draw border
              * Display notification
              */
             try
             {
-                // TODO: Replace Kraken with Helix API call here.
-                WebRequest request = WebRequest.Create("https://api.twitch.tv/kraken/channels/" + username);
-                request.Headers.Add("Client-ID: " + Utils.DecryptStringFromBase64(p.AppClientId, p.Entropy));
-
-                using (var response = request.GetResponse())
-                using (var stream = response.GetResponseStream())
+                Debug.WriteLine("No weird stuff so far, let's try to load the user image!");
+                lock (accessTokenLock)
                 {
-                    StreamReader reader = new StreamReader(stream);
-                    string json = reader.ReadToEnd();
-                    stream.Close();
+                    api.Settings.AccessToken = Utils.DecryptStringFromBase64(p.AccessToken, p.Entropy);
+                }
+                var userResponse = await api.Helix.Users.GetUsersAsync(null, new List<string> {username});
+                var user = (User) userResponse.Users.GetValue(0);
+                var logoUrl = user.ProfileImageUrl;
+                Debug.WriteLine($"This is the URL we got: {logoUrl}");
 
-                    var jsonObj = new JavaScriptSerializer().Deserialize<dynamic>(json);
-                    string logoUrl = jsonObj["logo"];
+                // SSL issue: https://stackoverflow.com/a/2904963
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                // Use SecurityProtocolType.Ssl3 if needed for compatibility reasons
 
-                    // Load image
+                WebRequest imgRequest = WebRequest.Create(logoUrl); // Will break if no url
+                using (var imgResponse = imgRequest.GetResponse())
+                using (var imgStream = imgResponse.GetResponseStream())
+                {
+                    Bitmap bmp = new Bitmap(imgStream);
+                    RGBtoBGR(bmp); // Fix color
 
-                    // SSL issue: https://stackoverflow.com/a/2904963
-                    ServicePointManager.Expect100Continue = true;
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                    // Use SecurityProtocolType.Ssl3 if needed for compatibility reasons
-
-                    WebRequest imgRequest = WebRequest.Create(logoUrl); // Will break if no url
-                    using (var imgResponse = imgRequest.GetResponse())
-                    using (var imgStream = imgResponse.GetResponseStream())
+                    // http://stackoverflow.com/a/27318979
+                    Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
+                    Graphics gfx = Graphics.FromImage(bmpEdit);
+                    Rectangle rect = new Rectangle(System.Drawing.Point.Empty, bmp.Size);
+                    gfx.Clear(color); // Background
+                    gfx.DrawImageUnscaledAndClipped(bmp, rect); // TODO: Maybe we should make sure it's 300x300 here.
+                    if(p.AvatarFrameEnabled)
                     {
-                        Bitmap bmp = new Bitmap(imgStream);
-                        RGBtoBGR(bmp); // Fix color
-
-                        // http://stackoverflow.com/a/27318979
-                        Bitmap bmpEdit = new Bitmap(bmp.Width, bmp.Height);
-                        Graphics gfx = Graphics.FromImage(bmpEdit);
-                        Rectangle rect = new Rectangle(System.Drawing.Point.Empty, bmp.Size);
-                        gfx.Clear(color); // Background
-                        gfx.DrawImageUnscaledAndClipped(bmp, rect);
                         System.Drawing.Pen pen = new System.Drawing.Pen(color, 32f);
                         gfx.DrawRectangle(pen, rect); // Outline
-                        gfx.Flush();
-                        userLogos.Add(b64name, bmpEdit); // Cache
-                        BitmapData TextureData = EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmpEdit); // Allocate
-                        Debug.WriteLine("Bitmap acquisition successful, broadcasting.");
-                        BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(TextureData)); // Submit
                     }
+                    gfx.Flush();
+                    lock(userLogosLock)
+                    {
+                        userLogos.Add(b64name, bmpEdit); // Cache
+                    }
+                    BitmapData TextureData = EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmpEdit); // Allocate
+                    Debug.WriteLine("Bitmap acquisition successful, broadcasting.");
+                    SubmitNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(TextureData)); // Submit
                 }
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Error broadcasting notification: "+e.Message);
-                BroadcastNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
+                SubmitNotification(message, EasyOpenVRSingleton.BitmapUtils.NotificationBitmapFromBitmapData(GeneratePlaceholderBitmapData(color, username, b64name)));
                 return;
             }
         }
 
-        private void BroadcastNotification(string message, NotificationBitmap_t icon)
+        private void SubmitNotification(string message, NotificationBitmap_t icon)
         {
             if (overlayHandle == 0)
             {
-                // TODO: Add more overlays for the various types of messages.
                 overlayHandle = ovr.InitNotificationOverlay($"Twitch Chat");
             }
-
             if (OpenVR_Initiated)
             {
                 ovr.EnqueueNotification(overlayHandle, message, icon);
+            }
+        }
+
+        public void InvalidateAvatars()
+        {
+            lock(userLogosLock)
+            {
+                userLogos.Clear();
             }
         }
         #endregion
@@ -513,7 +614,10 @@ namespace TwitchVRNotifications
                 gfx.DrawString(letter, new Font("Tahoma", 150), System.Drawing.Brushes.White, rect, sf);
                 gfx.Flush();
             }
-            if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
+            lock(userLogosLock)
+            {
+                if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
+            }
             return EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmp);
         }
 
@@ -551,7 +655,7 @@ namespace TwitchVRNotifications
 
         public static string Base64Encode(string plainText)
         {
-            // http://stackoverflow.com/a/11743162
+            // based on http://stackoverflow.com/a/11743162
 
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Net.Http;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Interop;
 using System.Windows.Media;
 
 namespace TwitchVRNotifications
@@ -12,6 +12,7 @@ namespace TwitchVRNotifications
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static readonly HttpClient http = new HttpClient();
         Properties.Settings p;
         MainController controller;
         string garbage = "12345678901234567890";
@@ -33,6 +34,8 @@ namespace TwitchVRNotifications
             controller = new MainController();
             controller.openVRStatusEvent += OnOpenVRStatus;
             controller.chatBotStatusEvent += OnChatBotStatus;
+            controller.accessTokenEvent += OnAccessTokenStatus;
+            controller.RefreshAccessToken();
             
             if (p.Entropy.Length == 0)
             {
@@ -44,16 +47,22 @@ namespace TwitchVRNotifications
 
         private void OnOpenVRStatus(bool ok, string message, string toolTip)
         {
-            label_OpenVRStatus.Background = ok ? green : red;
-            label_OpenVRStatus.Content = message;
-            label_OpenVRStatus.ToolTip = toolTip;
+            UpdateStatusLabel(label_OpenVRStatus, ok, message, toolTip);
         }
-
         private void OnChatBotStatus(bool ok, string message, string toolTip)
         {
-            label_ChatBotStatus.Background = ok ? green : red;
-            label_ChatBotStatus.Content = message;
-            label_ChatBotStatus.ToolTip = toolTip;
+            UpdateStatusLabel(label_ChatBotStatus, ok, message, toolTip);
+        }
+        private void OnAccessTokenStatus(bool ok, string message, string toolTip)
+        {
+            UpdateStatusLabel(label_AccessTokenStatus, ok, message, toolTip);
+            button_RefreshAccessToken.IsEnabled = true;
+        }
+        private void UpdateStatusLabel(Label label, bool ok, string message, string toolTip)
+        {
+            label.Background = ok ? green : red;
+            label.Content = message;
+            label.ToolTip = toolTip;
         }
 
         private void LoadSettings()
@@ -78,7 +87,6 @@ namespace TwitchVRNotifications
             checkBox_NotifyRaided.IsChecked = p.NotifyRaided;
 
             checkBox_IgnoreBroadcaster.IsChecked = p.IgnoreBroadcaster;
-            checkBox_IgnoreBots.IsChecked = p.IgnoreBots;
             textBox_IgnoreUsers.Text = p.IgnoreUsers;
 
             checkBox_AvatarEnabled.IsChecked = p.AvatarEnabled;
@@ -210,6 +218,12 @@ namespace TwitchVRNotifications
                 p.Save();
                 passwordBox_Secret.Password = secret.Length == 0 ? "" : garbage;
             }
+        }
+
+        private void Button_RefreshAccessToken_Click(object sender, RoutedEventArgs e)
+        {
+            controller.RefreshAccessToken(true);
+            button_RefreshAccessToken.IsEnabled = false;
         }
         #endregion
 
@@ -344,17 +358,6 @@ namespace TwitchVRNotifications
             p.Save();
         }
 
-        private void CheckBox_IgnoreBots_Checked(object sender, RoutedEventArgs e)
-        {
-            p.IgnoreBots = true;
-            p.Save();
-        }
-        private void CheckBox_IgnoreBots_Unchecked(object sender, RoutedEventArgs e)
-        {
-            p.IgnoreBots = false;
-            p.Save();
-        }
-
         private void Button_EditIgnoreUsers_Click(object sender, RoutedEventArgs e)
         {
             var ignoreUsers = ShowInputDialogLarge(
@@ -378,33 +381,39 @@ namespace TwitchVRNotifications
         {
             p.AvatarEnabled = true;
             p.Save();
+            controller.InvalidateAvatars();
         }
         private void CheckBox_AvatarEnabled_Unchecked(object sender, RoutedEventArgs e)
         {
             p.AvatarEnabled = false;
             p.Save();
+            controller.InvalidateAvatars();
         }
 
         private void CheckBox_AvatarFrameEnabled_Checked(object sender, RoutedEventArgs e)
         {
             p.AvatarFrameEnabled = true;
             p.Save();
+            controller.InvalidateAvatars();
         }
         private void CheckBox_AvatarFrameEnabled_Unchecked(object sender, RoutedEventArgs e)
         {
             p.AvatarFrameEnabled = false;
             p.Save();
+            controller.InvalidateAvatars();
         }
 
         private void CheckBox_AvatarBadgesEnabled_Checked(object sender, RoutedEventArgs e)
         {
             p.AvatarBadgesEnabled = true;
             p.Save();
+            controller.InvalidateAvatars();
         }
         private void CheckBox_AvatarBadgesEnabled_Unchecked(object sender, RoutedEventArgs e)
         {
             p.AvatarBadgesEnabled = false;
             p.Save();
+            controller.InvalidateAvatars();
         }
         #endregion
 
@@ -444,5 +453,6 @@ namespace TwitchVRNotifications
             controller.BroadcastNotification(p.TestUsername, p.TestMessage);
         }
         #endregion
+
     }
 }

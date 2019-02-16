@@ -61,13 +61,14 @@
         <TextBlock x:Name="textBlock_Issue" HorizontalAlignment="Left" Margin="131,486,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
             <Hyperlink NavigateUri="https://github.com/BOLL7708/TwitchVRNotifications/issues" Click="ClickedURL">Report issue on Github</Hyperlink>
         </TextBlock>
-        <TextBlock x:Name="textBlock_Twitter" HorizontalAlignment="Left" Margin="290,486,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+        <TextBlock x:Name="textBlock_Twitter" HorizontalAlignment="Left" Margin="274,486,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
             <Hyperlink NavigateUri="https://twitter.com/BOLL7708" Click="ClickedURL">Contact developer on Twitter</Hyperlink>
         </TextBlock>
         <CheckBox x:Name="checkBox_AvatarBadgesEnabled" Content="Display badges" HorizontalAlignment="Left" Margin="498,248,0,0" VerticalAlignment="Top" IsEnabled="False" Checked="CheckBox_AvatarBadgesEnabled_Checked" Unchecked="CheckBox_AvatarBadgesEnabled_Unchecked" Visibility="Hidden"/>
-        <TextBlock x:Name="textBlock_Twitch" HorizontalAlignment="Left" Margin="485,486,10,10" TextWrapping="Wrap" VerticalAlignment="Top"><Hyperlink NavigateUri="https://twitch.tv/BOLL7708" Click="ClickedURL"><Run Text="Stalk developer on Twitch"/></Hyperlink></TextBlock>
+        <TextBlock x:Name="textBlock_Twitch" HorizontalAlignment="Left" Margin="450,486,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Hyperlink NavigateUri="https://twitch.tv/BOLL7708" Click="ClickedURL"><Run Text="Stalk developer on Twitch"/></Hyperlink></TextBlock>
         <Button x:Name="button_RefreshAccessToken" Content="Force access token refresh" HorizontalAlignment="Left" Margin="498,191,0,0" VerticalAlignment="Top" Width="202" Height="22" Click="Button_RefreshAccessToken_Click"/>
         <Label x:Name="label_AccessTokenStatus" Content="Access token status..." HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="498,146,0,0" VerticalAlignment="Top" Height="40" Width="202" Background="#FF646464" Foreground="White"/>
-        <Label Content="v2.0.40" HorizontalAlignment="Left" Margin="653,481,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Version" Content="Version" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="601,481,0,0" VerticalAlignment="Top" Width="51"/>
+        <Button x:Name="button_Version" Content="Check" HorizontalAlignment="Left" Margin="659,484,10,10" VerticalAlignment="Top" Width="41" Click="Button_Version_Click"/>
     </Grid>
 </Window>

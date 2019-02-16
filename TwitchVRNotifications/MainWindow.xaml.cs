@@ -30,7 +30,7 @@ namespace TwitchVRNotifications
                 p.UpgradeNeeded = false;
                 p.Save();
             }
-
+            label_Version.Content = p.Version;
             controller = new MainController();
             controller.openVRStatusEvent += OnOpenVRStatus;
             controller.chatBotStatusEvent += OnChatBotStatus;
@@ -455,5 +455,18 @@ namespace TwitchVRNotifications
         }
         #endregion
 
+        private async void Button_Version_Click(object sender, RoutedEventArgs e)
+        {
+            button_Version.IsEnabled = false;
+            var tag = await controller.CheckVersion();
+            if (tag == null) System.Windows.MessageBox.Show("Unable to fetch version information.", "Error");
+            else if (tag.Length == 0) System.Windows.MessageBox.Show("You are running the current version.", "Status");
+            else
+            {
+                var result = System.Windows.MessageBox.Show($"A newer release is available: {tag}\n\nDo you want to open the releases page?", "Status", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes) Process.Start("https://github.com/BOLL7708/TwitchVRNotifications/releases");
+            }
+            button_Version.IsEnabled = true;
+        }
     }
 }

@@ -334,5 +334,14 @@ namespace TwitchVRNotifications.Properties {
                 this["UpgradeNeeded"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("v2.1.47")]
+        public string Version {
+            get {
+                return ((string)(this["Version"]));
+            }
+        }
     }
 }

@@ -57,6 +57,29 @@ namespace TwitchVRNotifications
             ReloadIgnoredUsers();
         }
 
+        public async Task<string> CheckVersion()
+        {
+            var url = "https://api.github.com/repos/BOLL7708/TwitchVRNotifications/releases/latest";
+            string result = null;
+            var headers = new Dictionary<string, string> {
+                {"Accept","application/vnd.github.v3+json"},
+                {"User-Agent", "BOLL7708/TwitchVRNotifications"}
+            };
+            try
+            {
+                var release = await DoWebRequest(url, null, headers);
+                string currentTag = release["tag_name"];
+                Version.TryParse(currentTag.TrimStart('v'), out Version currentVersion);
+                Version.TryParse(p.Version.TrimStart('v'), out Version thisVersion);
+                if (currentVersion.CompareTo(thisVersion) > 0) return release["tag_name"];
+                else return "";
+            } catch(Exception e)
+            {
+                Debug.WriteLine($"Error getting version: {e.Message} -> {e.StackTrace}");
+            }
+            return result;
+        }
+
         #region TwitchLib
         private void ChatWorker()
         {
@@ -197,10 +220,29 @@ namespace TwitchVRNotifications
             }
         }
 
-        private async Task<dynamic> DoWebRequest(string url, Dictionary<string, string> values)
+        private async Task<dynamic> DoWebRequest(string url, Dictionary<string, string> values = null, Dictionary<string, string> headers = null)
         {
-            var content = new FormUrlEncodedContent(values);
-            var response = await MainWindow.http.PostAsync(url, content);
+            HttpResponseMessage response;
+            if(headers != null)
+            {
+                foreach(KeyValuePair<string, string> entry in headers)
+                {
+                    MainWindow.http.DefaultRequestHeaders.Add(entry.Key, entry.Value);
+                }
+            }
+            else
+            {
+                MainWindow.http.DefaultRequestHeaders.Clear();
+            }
+            if(values != null)
+            {
+                var content = new FormUrlEncodedContent(values);
+                response = await MainWindow.http.PostAsync(url, content);
+            }
+            else
+            {
+                response = await MainWindow.http.GetAsync(url);
+            }
             var responseString = await response.Content.ReadAsStringAsync();
             return new JavaScriptSerializer().Deserialize<dynamic>(responseString);            
         }

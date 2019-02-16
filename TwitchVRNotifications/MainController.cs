@@ -65,7 +65,7 @@ namespace TwitchVRNotifications
             {
                 if(!IsChatConnected() && !isConnectingToChat)
                 {
-                    Debug.WriteLine("Connecting to chat");
+                    ChatStatus(true, "Connecting to chat", "Currently attempting to connect to the chat channel...");
                     ConnectChat();
                 }
                 Thread.Sleep(5000+1000*connectionAttempts*5);
@@ -76,6 +76,7 @@ namespace TwitchVRNotifications
         {
             Application.Current.Dispatcher.Invoke(() =>
                 {
+                    Debug.WriteLine($"{status}, {label} - {toolTip}");
                     chatBotStatusEvent?.Invoke(status, label, toolTip);
                 }
             );
@@ -563,6 +564,8 @@ namespace TwitchVRNotifications
                     gfx.Flush();
                     lock(userLogosLock)
                     {
+                        if (userLogos.Count >= 100) userLogos.Clear();
+                        ChatStatus(true, $"Cache: {userLogos.Count}", "");
                         userLogos.Add(b64name, bmpEdit); // Cache
                     }
                     BitmapData TextureData = EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmpEdit); // Allocate
@@ -623,7 +626,8 @@ namespace TwitchVRNotifications
             }
             lock(userLogosLock)
             {
-                if(!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
+                if (userLogos.Count >= 100) userLogos.Clear();
+                if (!userLogos.ContainsKey(b64name)) userLogos.Add(b64name, bmp); // Cache
             }
             return EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmp);
         }

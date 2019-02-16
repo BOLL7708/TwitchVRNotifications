@@ -13,6 +13,7 @@ I hardly know what the word means, but I was told this can be important. This so
 * https://github.com/BOLL7708/EasyOpenVR
 * https://github.com/ValveSoftware/openvr
 * https://github.com/TwitchLib/TwitchLib
+* https://github.com/Fody/Costura
 
 ## How to use
 The options and buttons should be somewhat self-explanatory, there are a number of tooltips in the application but here are some fleshed out instructions just in case.

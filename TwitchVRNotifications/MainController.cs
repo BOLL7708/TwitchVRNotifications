@@ -238,6 +238,7 @@ namespace TwitchVRNotifications
             }
 
             var limitedAccess = p.AllowFollower || p.AllowSubscriber || p.AllowModerator || p.AllowVIP;
+            var allow = false;
             if(limitedAccess && !e.ChatMessage.IsBroadcaster)
             {
                 if (p.AllowFollower)
@@ -251,18 +252,19 @@ namespace TwitchVRNotifications
                     {
                         var followResponse = await api.Helix.Users.GetUsersFollowsAsync(null, null, 1, e.ChatMessage.UserId, e.ChatMessage.RoomId);
                         Debug.WriteLine($"Follow count: {followResponse.TotalFollows}");
-                        if (followResponse.TotalFollows == 0) return;
+                        if (followResponse.TotalFollows > 0) allow = true;
                     }
                     catch (Exception exception)
                     {
                         Debug.WriteLine($"Unable to load follower count: {exception.Message}");
+                        allow = true;
                     }
                 }
-                if (p.AllowSubscriber && !e.ChatMessage.IsSubscriber) return;
-                if (p.AllowModerator && !e.ChatMessage.IsModerator) return;
-                if (p.AllowVIP && !true) return; // TODO: Need to look through badges here.
+                if (p.AllowSubscriber && e.ChatMessage.IsSubscriber) allow = true;
+                if (p.AllowModerator && e.ChatMessage.IsModerator) allow = true;
+                // if (p.AllowVIP && !true) return; // TODO: Need to look through badges here.
             }
-
+            if (!allow) return;
             // if (e.ChatMessage.Badges.Find())
             Debug.WriteLine("Broadcasting notifiction...");
             Debug.WriteLine(e.ChatMessage.RawIrcMessage);
@@ -565,7 +567,6 @@ namespace TwitchVRNotifications
                     lock(userLogosLock)
                     {
                         if (userLogos.Count >= 100) userLogos.Clear();
-                        ChatStatus(true, $"Cache: {userLogos.Count}", "");
                         userLogos.Add(b64name, bmpEdit); // Cache
                     }
                     BitmapData TextureData = EasyOpenVRSingleton.BitmapUtils.BitmapDataFromBitmap(bmpEdit); // Allocate

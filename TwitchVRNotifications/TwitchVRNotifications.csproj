@@ -304,7 +304,14 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
     <Resource Include="FodyWeavers.xml" />
+    <EmbeddedResource Include="costura64\openvr_api.dll" />
+    <Content Include="costura32\openvr_api.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="costura32\openvr_api.dll" />
+    <Content Include="costura64\openvr_api.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="openvr_api.pdb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

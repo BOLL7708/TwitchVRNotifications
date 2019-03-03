@@ -337,7 +337,7 @@ namespace TwitchVRNotifications.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("v2.1.48")]
+        [global::System.Configuration.DefaultSettingValueAttribute("v2.1.49")]
         public string Version {
             get {
                 return ((string)(this["Version"]));

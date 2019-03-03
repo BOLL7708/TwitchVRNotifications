@@ -306,7 +306,11 @@ namespace TwitchVRNotifications
                 if (p.AllowModerator && e.ChatMessage.IsModerator) allow = true;
                 // if (p.AllowVIP && !true) return; // TODO: Need to look through badges here.
             }
-            if (!allow) return;
+            if (limitedAccess && !allow)
+            {
+                Debug.WriteLine($"User {e.ChatMessage.DisplayName} is not allowed to send message, ignored.");
+                return;
+            }
             // if (e.ChatMessage.Badges.Find())
             Debug.WriteLine("Broadcasting notifiction...");
             Debug.WriteLine(e.ChatMessage.RawIrcMessage);

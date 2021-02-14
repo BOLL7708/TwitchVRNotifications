@@ -1,3 +1,5 @@
+**Note**: This project has been retired in favor of using [Twitch Logger](https://github.com/jeppevinkel/twitch-logger) coupled with [OpenVRNotificationPipe](https://github.com/BOLL7708/OpenVRNotificationPipe).
+
 # TwitchVRNotifications
 A companion application for OpenVR that pipes Twitch chat messages to notifications in VR
 ![SteamVR notification triggered by Twitch chat](https://i.imgur.com/eKwTCJZ.png)
